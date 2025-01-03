@@ -1,0 +1,29 @@
+{
+  "name": "pnp",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "nuxt",
+    "build": "nuxt build",
+    "start": "nuxt start",
+    "generate": "nuxt generate",
+    "scaff": "node ./custom/scripts/scaff.js"
+  },
+  "dependencies": {
+    "@nuxtjs/axios": "^5.13.6",
+    "@prisma/client": "^6.1.0",
+    "core-js": "^3.25.3",
+    "nuxt": "^2.15.8",
+    "pug": "^3.0.3",
+    "pug-plain-loader": "^1.1.0",
+    "sass": "^1.83.0",
+    "sass-loader": "^16.0.4",
+    "vue": "^2.7.10",
+    "vue-server-renderer": "^2.7.10",
+    "vue-template-compiler": "^2.7.10",
+    "zero-vue": "github:TerraZero/zero-vue"
+  },
+  "devDependencies": {
+    "prisma": "^6.1.0"
+  }
+}

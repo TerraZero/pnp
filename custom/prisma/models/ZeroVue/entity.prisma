@@ -1,0 +1,5 @@
+// > module zero-vue
+
+model Entity {
+  id Int @id @default(autoincrement())
+}
