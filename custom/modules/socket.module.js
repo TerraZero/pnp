@@ -20,7 +20,7 @@ export default function () {
     SystemCollector.set('socket', server);
     SystemCollector.get('root').setup('moduleSocket', server);
 
-    server.handler.on('socket:connection', ({ client }) => {
+    server.handler.on(Server.EVENT__SOCKET_CONNECT, ({ client }) => {
 
       console.log('client mount');
       client.mount.on('zero:remote-info', (request) => {
