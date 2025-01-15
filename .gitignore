@@ -91,4 +91,7 @@ sw.*
 
 ## Custom
 prisma/schema.prisma
-zero.registry.json
+/zero.registry.json
+*.registry.js
+*.zero.json
+static/*

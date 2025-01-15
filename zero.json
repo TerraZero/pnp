@@ -5,46 +5,10 @@
       "zero-vue"
     ],
     "paths": {
-      "comps": {
-        "path": "components/${module}/${file}",
+      "zero-config": {
+        "path": "custom/zero-config/${file}",
         "mode": "replace"
-      },
-      "system": {
-        "path": "custom/${file}"
-      },
-      "module": {
-        "path": "custom/system/modules/${module}/${file}"
-      },
-      "prisma": {
-        "path": "custom/prisma/${file}",
-        "mode": "replace"
-      },
-      "model": {
-        "path": "custom/prisma/models/${module}/${file}",
-        "prepend": [
-          "// > module ${module_name}\n\n"
-        ],
-        "append": [
-          ""
-        ],
-        "mode": "replace"
-      },
-      "plugin": {
-        "path": "custom/plugins/${file}",
-        "mode": "replace"
-      },
-      "script": {
-        "path": "custom/scripts/${file}"
       }
-    },
-    "after": [
-      {
-        "type": "append",
-        "file": "custom/prisma/connection.prisma",
-        "pattern": "custom/prisma/models/**/*.prisma",
-        "separator": "\n",
-        "result": "prisma/schema.prisma"
-      }
-    ]
+    }
   }
 }

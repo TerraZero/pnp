@@ -46,7 +46,18 @@
 </template>
 
 <script>
+import zero from '~/custom/plugins/zero.plugin';
+
 export default {
-  name: 'NuxtTutorial'
+  name: 'NuxtTutorial',
+
+  data() {
+    zero.get('entity').then(v => {
+      console.log('finish', v);
+    });
+    return {
+      test: 'ok',
+    };
+  },
 }
 </script>
