@@ -7,4 +7,3 @@ const registry = scaffold.getRegistry(__dirname);
 
 registry.setType('_collection', SystemCollector.pack());
 scaffold.saveRegistry();
-
