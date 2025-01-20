@@ -95,3 +95,4 @@ prisma/schema.prisma
 *.registry.js
 *.zero.json
 static/*
+*.namespace.js

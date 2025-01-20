@@ -10,7 +10,7 @@ export default async (ctx, inject) => {
     const extender = context('./' + plugin.id + '.js');
 
     if (typeof extender.startup === 'function') {
-      extender.startup(ctx);
+      extender.startup(extender.default, ctx, extender);
     }
   }
 }

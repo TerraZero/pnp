@@ -55,6 +55,9 @@ export default {
     zero.get('entity').then(v => {
       console.log('finish', v);
     });
+    zero.get('remote.rmi').then(v => {
+      console.log('finish', v);
+    });
     return {
       test: 'ok',
     };
