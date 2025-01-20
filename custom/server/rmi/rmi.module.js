@@ -1,5 +1,4 @@
 const Server = require('zero-system/src/Nuxt/Socket/Server');
-const SystemItem = require('zero-system/src/SystemItem');
 const ZeroModule = require('zero-system/src/ZeroModule');
 
 module.exports = class RMIModule extends ZeroModule {
@@ -24,7 +23,7 @@ module.exports = class RMIModule extends ZeroModule {
    */
   onSocketConnect(event, client) {
     client.mount.on('rmi:request', (request) => {
-
+      
     });
     client.mount.on('rmi:response', (response) => {
       

@@ -4,8 +4,7 @@ module.exports = class EntityStorage {
    * @param {import('zero-system/src/Collector/ServiceCollector')} collector 
    */
   static define(collector) {
-    collector.add('entity.storage')
-      .setRemote('service.remote.entity.storage');
+    collector.add('entity.storage');
   }
 
   /**

@@ -4,8 +4,7 @@ module.exports = class TestProxyRemote {
    * @param {import('zero-system/src/Collector/ServiceCollector')} collector 
    */
   static define(collector) {
-    collector.add('test.proxy')
-      .setRemote();
+    collector.add('test.proxy');
   }
 
   /**
