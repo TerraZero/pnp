@@ -30,26 +30,11 @@ module.exports = class RMIModule extends ZeroModule {
    * @param {Server} server 
    */
   setupModuleSocket(server) {
-    server.handler.on(Server.EVENT__SOCKET_CONNECT, this.onSocketConnect.bind(this), ['client']);
-  }
-
-  /**
-   * @param {Object} event
-   * @param {import('zero-system/src/Nuxt/Socket/Item')} client
-   */
-  onSocketConnect(event, client) {
-    client.mount.on('rmi:info:request', (request) => {
-      console.log(request);
-      client.send('rmi:info:response', {
-        info: this.getInfo(),
+    server.addHandler('rmi.info', (request, client, answer) => {
+      answer({
+        result: request.data.test + request.data.test,
       });
     });
-    client.mount.on('rmi:request', (request) => {
-      
-    });
-    client.mount.on('rmi:response', (response) => {
-      
-    });
-  } 
+  }
 
 }

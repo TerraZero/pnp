@@ -52,12 +52,12 @@ export default {
   name: 'NuxtTutorial',
 
   data() {
-    zero.get('entity').then(v => {
-      console.log('finish', v);
-    });
-    zero.get('remote.rmi').then(v => {
-      console.log('finish', v);
-    });
+    setTimeout(() => {
+      console.log('send');
+      zero.socket.request('rmi.info', {test: 'foo'}).then(response => {
+        console.log(response);
+      });
+    }, 1000);
     return {
       test: 'ok',
     };

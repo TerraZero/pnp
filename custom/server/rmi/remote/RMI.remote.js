@@ -14,8 +14,8 @@ module.exports = class RMIRemote {
    */
   static async onBoot(system) {
     system.addResolver(this.resolver, 2000);
-    system.socket.socket.on('rmi:info:response', (response) => {
-      console.log(response);
+    system.socket.socket.on('response', (response) => {
+      console.log('Received response event:', response);
     });
   }
 
