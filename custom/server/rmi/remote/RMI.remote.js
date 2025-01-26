@@ -1,3 +1,10 @@
+/**
+ * @typedef {Object} T_RemoteInfo
+ * @property {string} name
+ * @property {string[]} tags
+ * @property {Object<string, any>} attributes
+ */
+
 const RemoteSystem = require('zero-system/src/RemoteSystem');
 
 module.exports = class RMIRemote {
@@ -10,13 +17,22 @@ module.exports = class RMIRemote {
   }
 
   /**
+   * @returns {T_RemoteInfo[]}
+   */
+  static async getInfo() {
+    if (this._info === undefined) {
+      const request = await RemoteSystem.instance.socket.mount.request('rmi.info');
+
+      this._info = request.data.info;
+    }
+    return this._info;
+  }
+
+  /**
    * @param {import('zero-system/src/RemoteSystem')} system 
    */
-  static async onBoot(system) {
-    system.addResolver(this.resolver, 2000);
-    system.socket.socket.on('response', (response) => {
-      console.log('Received response event:', response);
-    });
+  static async setupInit(system) {
+    system.addResolver(this.resolver.bind(this), 2000);
   }
 
   /**
@@ -24,8 +40,35 @@ module.exports = class RMIRemote {
    * @returns {?Object}
    */
   static async resolver(id) {
-    RemoteSystem.instance.socket.request('rmi:info:request');
-    return { t: 'not found', id };
+    const info = await this.getInfo();
+    const data = info.find(v => v.name === id);
+    const proxy = this.createProxy(data);
+    RemoteSystem.instance.set(data.name, proxy);
+    return proxy;
+  }
+
+  /**
+   * @param {T_RemoteInfo} info
+   */
+  static createProxy(info) {
+    return new Proxy({}, {
+
+      get(target, method, receiver) {
+        if (method === 'then') return null;
+        return async (...args) => {
+          const result = await RemoteSystem.instance.socket.mount.request('rmi.method', {
+            info,
+            method,
+            args,
+          });
+          if (result.meta.error) {
+            throw new Error(result.meta.error);
+          }
+          return result.data.result;
+        };
+      }
+
+    });
   }
 
 }

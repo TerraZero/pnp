@@ -8,7 +8,7 @@ module.exports = class RMIModule extends ZeroModule {
    * @param {import('zero-system/src/Collector/ModuleCollector')} collector 
    */
   static define(collector) {
-    collector.add('rmi');
+    collector.add('rmi').setTag('rmi');
   }
 
   /**
@@ -21,7 +21,14 @@ module.exports = class RMIModule extends ZeroModule {
 
   getInfo() {
     if (this.info === null) {
-      this.info = SystemCollector.finds(item => item.hasTag('remote'));
+      this.info = SystemCollector.finds(item => item.hasTag('rmi')).map(item => {
+        return {
+          name: item.name,
+          tags: item.info.tags ?? [],
+          attributes: item.info.attributes ?? {},
+        };
+      });
+    
     }
     return this.info;
   }
@@ -30,10 +37,31 @@ module.exports = class RMIModule extends ZeroModule {
    * @param {Server} server 
    */
   setupModuleSocket(server) {
-    server.addHandler('rmi.info', (request, client, answer) => {
+    server.addHandler('rmi.info', async (request, mount, answer) => {
       answer({
-        result: request.data.test + request.data.test,
+        info: this.getInfo(),
       });
+    });
+    server.addHandler('rmi.method', async (request, mount, answer) => {
+      try {
+        answer({ 
+          result: await SystemCollector.get(request.data.info.name)[request.data.method](...request.data.args),
+        });
+      } catch (error) {
+        request.meta.error = error;
+        answer({ result: error.message });
+      }
+    });
+  }
+
+  test(cool) {
+    throw new Error('test');
+    return 'test, ' + cool + ':' + cool;
+  }
+
+  wait() {
+    return new Promise((res) => {
+      setTimeout(res, 5000);
     });
   }
 

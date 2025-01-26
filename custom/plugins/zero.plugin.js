@@ -2,6 +2,7 @@ import RemoteSystem from 'zero-system/src/RemoteSystem';
 import Client from 'zero-system/src/Nuxt/Socket/Client';
 
 import namespace from '../namespaces/remote.namespace';
+import Logger from 'zero-system/src/Log/Logger';
 
 export default new RemoteSystem(new Client(), namespace);
 
@@ -11,6 +12,7 @@ export default new RemoteSystem(new Client(), namespace);
  */
 export function startup(rs, context) {
 
+  Logger.setDebug(true);
   rs.boot(context);
 
 }

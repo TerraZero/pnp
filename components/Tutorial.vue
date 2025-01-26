@@ -52,12 +52,16 @@ export default {
   name: 'NuxtTutorial',
 
   data() {
-    setTimeout(() => {
-      console.log('send');
-      zero.socket.request('rmi.info', {test: 'foo'}).then(response => {
-        console.log(response);
-      });
-    }, 1000);
+    (async () => {
+      console.log('test');
+      /** @type {import('~/custom/server/rmi/rmi.module')} */
+      const test = await zero.get('module.rmi');
+
+      
+      // const result = await test.test('ok');
+      // console.log('result:', result);
+      await test.wait();
+    })();
     return {
       test: 'ok',
     };
