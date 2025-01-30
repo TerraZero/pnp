@@ -1,12 +1,10 @@
 module.exports = class SessionEntity {
 
   /**
-   * @param {import('../Collector/EntityCollector')} collector 
+   * @param {import('../Collector/Entity.collector')} collector 
    */
   static define(collector) {
-    collector
-      .add('session')
-      .setVolatile();
+    collector.add('session');
   }
 
   constructor(storage) {

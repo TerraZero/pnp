@@ -23,12 +23,15 @@ module.exports = class EntityCollector extends SystemCollector {
    * @returns {T}
    */
   factory(item, Construct) {
-    console.log('new entity');
     if (this._storage === undefined) {
-      console.log('get storage');
       this._storage = SystemCollector.get('service.storage');
     }
     return new Construct(this._storage);
+  }
+
+  add(name) {
+    return super.add(name)
+      .setVolatile();
   }
 
 }
