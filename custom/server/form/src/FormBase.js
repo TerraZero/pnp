@@ -1,0 +1,108 @@
+const JSONUtil = require('zero-util/src/JSONUtil');
+
+const FormBuilder = require('./FormBuilder');
+const FormField = require('./FormField');
+
+module.exports = class FormBase {
+
+  static EVENT__FORM_SCHEMA_BUILD = 'form:schema:build';
+  static EVENT__FORM_PREPARE = 'form:prepare';
+  static EVENT__FORM_SUBMIT = 'form:submit';
+
+  /**
+   * Create always a new instance and don't cache it.
+   * @param {import('zero-system/src/RemoteSystem')} system
+   * @returns {typeof this}
+   */
+  static factory(system) {
+    return new this(system);
+  }
+
+  /**
+   * @param {import('zero-system/src/RemoteSystem')} system 
+   */
+  constructor(system) {
+    this.system = system;
+    this.mount = null;
+    this.fields = [];
+    this._schema = null;
+  }
+
+  setMount(mount) {
+    this.mount = mount;
+    return this;
+  }
+
+  get values() {
+    return this.mount.values;
+  }
+
+  set values(value) {
+    this.mount.values = value;
+  }
+
+  /**
+   * @param {string} id 
+   * @returns {any}
+   */
+  getValue(id) {
+    if (this.values === null) return null;
+    return JSONUtil.getDeep(this.values, id.split('.').join('.0.'));
+  } 
+
+  /**
+   * @param {string} id 
+   * @returns {FormField}
+   */
+  getField(id) {
+    return this.fields.find(item => item.id === id)?.field ?? null;
+  }
+
+  /**
+   * @param {FormField} field 
+   * @returns {this}
+   */
+  addField(field) {
+    this.fields.push({
+      id: field.id,
+      field,
+    });
+    this.fields.sort((a, b) => {
+      return a.id.localeCompare(b.id);
+    });
+    return this;
+  }
+
+  schema() {
+    if (this._schema === null) {
+      this._schema = [];
+      const builder = new FormBuilder({ form: this });
+      const root = new FormField(builder, '', '');
+      root.schema = this._schema;
+      this.addField(root);
+      this.build(builder);
+      this.system.events.emit(FormBase.EVENT__FORM_SCHEMA_BUILD, { form: this });
+    }
+    return this._schema;
+  }
+
+  async doPrepare() {
+    this.system.events.trigger(FormBase.EVENT__FORM_PREPARE, { form: this });
+    await this.prepare();
+  }
+
+  async doSubmit() {
+    await this.system.events.trigger(FormBase.EVENT__FORM_SUBMIT, { form: this });
+    await this.submit();
+  }
+
+  /**
+   * @param {import('../src/FormBuilder')} builder 
+   */
+  build(builder) { }
+
+  async prepare() { }
+
+  async submit() { }
+
+}

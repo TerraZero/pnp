@@ -22,11 +22,12 @@ export default {
 
   plugins: [
     '~/custom/loaders/plugin.loader.js',
+    '~/custom/formulate/formulate.plugin.js',
   ],
 
   components: true,
 
-  buildModules: [],
+  buildModules: ['@braid/vue-formulate/nuxt'],
 
   modules: [
     '@nuxtjs/axios',

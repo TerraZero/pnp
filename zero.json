@@ -1,5 +1,8 @@
 {
   "extend": "custom/zero-config/*.zero.json",
+  "includes": [
+    "zero-vue"
+  ],
   "scaffold": {
     "modules": [
       "zero-vue"
@@ -7,7 +10,7 @@
     "paths": {
       "zero-config": {
         "path": "custom/zero-config/${file}",
-        "mode": "replace"
+        "mode": "once"
       }
     }
   }

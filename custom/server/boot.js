@@ -9,7 +9,7 @@ module.exports = function boot() {
   Logger.setDebug(true);
   const root = new ZeroRoot(__dirname, '~/custom/server');
   
-  SystemCollector.addPath(__dirname);
+  SystemCollector.addModules(__dirname);
 
   root.boot();
   return root;

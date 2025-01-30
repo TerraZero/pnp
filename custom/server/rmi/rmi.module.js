@@ -8,7 +8,7 @@ module.exports = class RMIModule extends ZeroModule {
    * @param {import('zero-system/src/Collector/ModuleCollector')} collector 
    */
   static define(collector) {
-    collector.add('rmi').setTag('rmi');
+    collector.add('rmi');
   }
 
   /**
@@ -51,17 +51,6 @@ module.exports = class RMIModule extends ZeroModule {
         request.meta.error = error;
         answer({ result: error.message });
       }
-    });
-  }
-
-  test(cool) {
-    throw new Error('test');
-    return 'test, ' + cool + ':' + cool;
-  }
-
-  wait() {
-    return new Promise((res) => {
-      setTimeout(res, 5000);
     });
   }
 
