@@ -9,9 +9,4 @@ module.exports = class SessionEntity extends EntityBase {
     collector.add('session');
   }
 
-  init() {
-    this.table = 'session';
-    this.uuids = ['user', 'key'];
-  }
-
 }

@@ -1,4 +1,3 @@
-const Server = require('zero-system/src/Nuxt/Socket/Server');
 const SystemCollector = require('zero-system/src/SystemCollector');
 const ZeroModule = require('zero-system/src/ZeroModule');
 
@@ -19,22 +18,8 @@ module.exports = class RMIModule extends ZeroModule {
     this.info = null;
   }
 
-  getInfo() {
-    if (this.info === null) {
-      this.info = SystemCollector.finds(item => item.hasTag('rmi')).map(item => {
-        return {
-          name: item.name,
-          tags: item.info.tags ?? [],
-          attributes: item.info.attributes ?? {},
-        };
-      });
-    
-    }
-    return this.info;
-  }
-
   /**
-   * @param {Server} server 
+   * @param {import('zero-system/src/Nuxt/Socket/Server')} server 
    */
   setupModuleSocket(server) {
     server.addHandler('rmi.info', async (request, mount, answer) => {
@@ -52,6 +37,20 @@ module.exports = class RMIModule extends ZeroModule {
         answer({ result: error.message });
       }
     });
+  }
+
+  getInfo() {
+    if (this.info === null) {
+      this.info = SystemCollector.finds(item => item.hasTag('rmi')).map(item => {
+        return {
+          name: item.name,
+          tags: item.info.tags ?? [],
+          attributes: item.info.attributes ?? {},
+        };
+      });
+    
+    }
+    return this.info;
   }
 
 }

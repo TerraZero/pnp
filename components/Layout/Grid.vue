@@ -17,8 +17,10 @@ export default {
       const styles = {};
 
       if (this.layout) {
-        if (this.layout.columns) {
+        if (typeof this.layout.columns === 'number') {
           styles['grid-template-columns'] = '1fr '.repeat(this.layout.columns);
+        } else if (typeof this.layout.columns === 'string') {
+          styles['grid-template-columns'] = this.layout.columns;
         }
         
         if (typeof this.layout.styles === 'function') {

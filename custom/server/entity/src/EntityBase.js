@@ -4,25 +4,14 @@ module.exports = class EntityBase {
    * @param {import('../Service/Storage.service')} storage 
    */
   constructor(storage) {
-    this.storage = storage;
-    this.table = null;
-    this.uuids = ['id'];
-    this.data = null;
-    this.isNew = true;
+    this._storage = storage;
 
     this.init();
   }
 
-  /**
-   * @param {Object} params 
-   * @returns {this}
-   */
-  async load(params) {
-    this.data = await this.storage.load(this, params);
-    if (this.data !== null) {
-      this.isNew = false;
-    }
-    return this;
+  /** @returns {import('../Service/Storage.service')} */
+  get storage() {
+    return this._storage;
   }
 
   init() { }

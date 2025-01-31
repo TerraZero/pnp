@@ -42,6 +42,7 @@ module.exports = class RMIRemote {
   static async resolver(id) {
     const info = await this.getInfo();
     const data = info.find(v => v.name === id);
+    if (data === null) return null;
     const proxy = this.createProxy(data);
     RemoteSystem.instance.set(data.name, proxy);
     return proxy;

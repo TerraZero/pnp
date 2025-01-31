@@ -1,3 +1,5 @@
+const RemoteSystem = require('zero-system/src/RemoteSystem');
+
 const FormBase = require('../src/FormBase');
 
 module.exports = class TestForm extends FormBase {
@@ -24,7 +26,6 @@ module.exports = class TestForm extends FormBase {
         type: 'autocomplete',
         search: {
           handler: async () => {
-            console.log('handler');
             return [
               { value: 1, label: 'First' },
               { value: 2, label: 'Second' },
@@ -38,7 +39,7 @@ module.exports = class TestForm extends FormBase {
         name: 'layout_test',
         layout: {
           comp: 'LayoutGrid',
-          columns: 2,
+          columns: '1fr 1fr 1fr',
           styles: ({ styles }) => {
             styles.gap = 'var(--form-size-gap)';
           },
@@ -333,11 +334,16 @@ module.exports = class TestForm extends FormBase {
       title: 'Loaded title',
       condition: [{checker: 'first'}],
       color: '#FFFFFF',
+      a: 'test',
     };
   }
 
   async submit() {
     console.log('submit', this.values);
+    /** @type {import('~/custom/server/entity/Service/Storage.service')} */
+    const storage = await RemoteSystem.get('service.storage');
+
+    console.log(await storage.getSchema('session', 'value'));
   }
 
 }

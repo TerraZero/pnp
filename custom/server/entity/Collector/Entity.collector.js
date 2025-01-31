@@ -30,7 +30,8 @@ module.exports = class EntityCollector extends SystemCollector {
   }
 
   add(name) {
-    return super.add(name)
+    return super
+      .add(name)
       .setVolatile();
   }
 
