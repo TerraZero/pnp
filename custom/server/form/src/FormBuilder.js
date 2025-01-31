@@ -84,6 +84,7 @@ module.exports = class FormBuilder {
     this.form = options.form ?? null;
     this.parents = options.parents ?? [];
     this.wrapper = options.wrapper ?? null;
+    this._group = null;
   }
 
   /**
@@ -163,14 +164,27 @@ module.exports = class FormBuilder {
     }
 
     if (this.form === null) {
-      parent.schema.children ??= [];
-      parent.schema.children.push(schema);
+      if (this._group === null) {
+        parent.schema.children ??= [];
+        parent.schema.children.push(schema); 
+      } else {
+        parent.schema.group ??= {};
+        parent.schema.group[this._group] ??= [];
+        parent.schema.group[this._group].push(schema);
+      }
     } else {
       parent.schema.push(schema);
     }
+
     if (typeof children === 'function') {
       children(new FormBuilder({ parents: [...this.parents, options.name], wrapper: this }));
     }
+
+    return this;
+  }
+
+  group(group) {
+    this._group = group;
     return this;
   }
 

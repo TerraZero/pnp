@@ -19,6 +19,106 @@ module.exports = class TestForm extends FormBase {
         label: 'Title',
       })
       .field({
+        name: 'auto',
+        label: 'Auto',
+        type: 'autocomplete',
+        search: {
+          handler: async () => {
+            console.log('handler');
+            return [
+              { value: 1, label: 'First' },
+              { value: 2, label: 'Second' },
+              { value: 3, label: 'Third' },
+            ];
+          },
+        },
+      })
+      .field({
+        type: 'wrapper',
+        name: 'layout_test',
+        layout: {
+          comp: 'LayoutGrid',
+          columns: 2,
+          styles: ({ styles }) => {
+            styles.gap = 'var(--form-size-gap)';
+          },
+        },
+      }, builder => {
+        builder
+          .group('a')
+          .field({
+            name: 'a',
+            label: 'A',
+          })
+          .group('b')
+          .field({
+            name: 'b',
+            label: 'B',
+          })
+          .group('a')
+          .field({
+            name: 'aa',
+            label: 'AA',
+          });
+      })
+      .field({
+        type: 'group',
+        label: 'Wrapper Group',
+        name: 'wrapper_group',
+        repeatable: true,
+      }, builder => {
+        builder.field({
+          type: 'wrapper',
+          name: 'layout_test',
+          layout: {
+            comp: 'LayoutGrid',
+            columns: 2,
+            styles: ({ styles }) => {
+              styles.gap = 'var(--form-size-gap)';
+            },
+          },
+        }, builder => {
+          builder
+            .group('a')
+            .field({
+              name: 'a',
+              label: 'A',
+            })
+            .group('b')
+            .field({
+              name: 'b',
+              label: 'B',
+            })
+            .group('a')
+            .field({
+              name: 'aa',
+              label: 'AA',
+            });
+        })
+      })
+      .field({
+        name: 'wrapper',
+        type: 'wrapper',
+        label: 'Wrapper',
+        layout: {
+          comp: 'LayoutGrid',
+          columns: 2,
+          styles: ({ styles }) => {
+            styles.gap = 'var(--form-size-gap)';
+          },
+        },
+      }, builder => {
+        builder
+          .field({
+            name: 'h',
+            label: 'h',
+          })
+          .field({
+            name: 'b',
+            label: 'b',
+          });
+      })
+      .field({
         name: 'two',
         type: 'group',
         label: 'Two Col',
@@ -225,6 +325,7 @@ module.exports = class TestForm extends FormBase {
         name: 'submit',
         label: 'Submit',
       });
+    console.log(this._schema);
   }
 
   async prepare() {
@@ -236,7 +337,7 @@ module.exports = class TestForm extends FormBase {
   }
 
   async submit() {
-    console.log('submit');
+    console.log('submit', this.values);
   }
 
 }

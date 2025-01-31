@@ -10,9 +10,11 @@ module.exports = class EntityModule extends ZeroModule {
     collector.add('entity');
   }
 
-  setupInit() {
-    const entity = SystemCollector.get('entity.session');
-    console.log(entity);
+  async setupInit() {
+    /** @type {import('./Service/Storage.service')} */
+    const storage = SystemCollector.get('service.storage');
+
+    await storage.load('session', { user: '12345', key: 'sdfsdf' })
   }
 
 }

@@ -21,8 +21,8 @@ export default {
   css: [],
 
   plugins: [
-    '~/custom/loaders/plugin.loader.js',
     '~/custom/formulate/formulate.plugin.js',
+    '~/custom/loaders/plugin.loader.js',
   ],
 
   components: true,

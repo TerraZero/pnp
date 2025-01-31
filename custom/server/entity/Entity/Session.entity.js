@@ -1,4 +1,6 @@
-module.exports = class SessionEntity {
+const EntityBase = require('../src/EntityBase');
+
+module.exports = class SessionEntity extends EntityBase {
 
   /**
    * @param {import('../Collector/Entity.collector')} collector 
@@ -7,8 +9,9 @@ module.exports = class SessionEntity {
     collector.add('session');
   }
 
-  constructor(storage) {
-    this.storage = storage;
+  init() {
+    this.table = 'session';
+    this.uuids = ['user', 'key'];
   }
 
 }

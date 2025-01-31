@@ -1,0 +1,12 @@
+-- CreateTable
+CREATE TABLE "Entity" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT
+);
+
+-- CreateTable
+CREATE TABLE "Session" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "user" TEXT NOT NULL,
+    "key" TEXT NOT NULL,
+    "value" TEXT NOT NULL
+);

@@ -1,0 +1,7 @@
+model Session {
+  id Int @id @default(autoincrement())
+  user String
+  key String
+  value String /// [JSON]
+  date Int
+}
