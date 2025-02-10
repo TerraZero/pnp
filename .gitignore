@@ -90,7 +90,7 @@ sw.*
 *.swp
 
 ## Custom
-prisma/schema.prisma
+prisma/*
 /zero.registry.json
 *.registry.js
 *.zero.json
