@@ -29,8 +29,14 @@ module.exports = class RMIModule extends ZeroModule {
     });
     server.addHandler('rmi.method', async (request, mount, answer) => {
       try {
-        answer({ 
-          result: await SystemCollector.get(request.data.info.name)[request.data.method](...request.data.args),
+        const args = [...request.data.args];
+        for (const index in args) {
+          if (typeof args[index] === 'string' && args[index] === '{{REQUEST}}') {
+            args[index] = request;
+          }
+        }
+        answer({
+          result: await SystemCollector.get(request.data.info.name)[request.data.method](...args),
         });
       } catch (error) {
         request.meta.error = error;

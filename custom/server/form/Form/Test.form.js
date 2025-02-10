@@ -340,10 +340,6 @@ module.exports = class TestForm extends FormBase {
 
   async submit() {
     console.log('submit', this.values);
-    /** @type {import('~/custom/server/entity/Service/Storage.service')} */
-    const storage = await RemoteSystem.get('service.storage');
-
-    console.log(await storage.getSchema('session', 'value'));
   }
 
 }

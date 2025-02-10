@@ -6,10 +6,13 @@
     .custom-grid__item(v-for="i in width * height", :key="i")
   .custom-grid__floor.custom-grid__floor-3(:style="styles")
     .custom-grid__item(v-for="i in width * height", :key="i")
+  .custom-grid__button(@click="onClick") Hallo
 </template>
 
 <script>
 export default {
+
+  inject: ['wsc'],
 
   data() {
     return {
@@ -25,6 +28,14 @@ export default {
         'grid-template-columns': '1fr '.repeat(this.width),
         'width': (this.width * 100) + 'px',
       };
+    },
+
+  },
+
+  methods: {
+
+    onClick() {
+      this.wsc.open('CustomGrid');
     },
 
   },
@@ -59,6 +70,13 @@ body
     width: 100px
     height: 100px
     box-sizing: border-box
+
+  &__button
+    position: absolute
+    top: 2em
+    left: 2em
+    padding: 1em
+    background: red
 
 </style>
   

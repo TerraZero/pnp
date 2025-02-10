@@ -21,6 +21,7 @@ export default {
   css: [],
 
   plugins: [
+    '~/plugins/shortkey.js',
     '~/custom/formulate/formulate.plugin.js',
     '~/custom/loaders/plugin.loader.js',
   ],

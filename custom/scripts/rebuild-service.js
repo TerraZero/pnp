@@ -23,5 +23,5 @@ console.log();
 const package = scaffold.findPackageRoot(__dirname);
 
 scaffold.scaffoldActions(package, ({ action }) => {
-  return action.type === 'registry';
+  return action.type === 'registry' || action.type === 'filelist';
 });

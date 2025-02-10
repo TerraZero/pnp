@@ -29,10 +29,4 @@ module.exports = class EntityCollector extends SystemCollector {
     return new Construct(this._storage);
   }
 
-  add(name) {
-    return super
-      .add(name)
-      .setVolatile();
-  }
-
 }

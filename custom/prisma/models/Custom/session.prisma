@@ -1,7 +1,8 @@
 model Session {
-  id Int @id @default(autoincrement())
-  user String
+  session String
   key String
   value String /// [JSON]
-  date Int
+  timestamp Int
+
+  @@id([session, key])
 }

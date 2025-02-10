@@ -26,13 +26,17 @@ module.exports = class StorageService {
    * @param {import('zero-system/src/Collector/Service.collector')} collector 
    */
   static define(collector) {
-    collector.add('storage').setTag('rmi');
+    collector.add('storage');
   }
 
   constructor() {
     this.prisma = new PrismaClient();
     this.transaction = null;
     this._schema = null;
+  }
+
+  get timestamp() {
+    return Math.floor(Date.now() / 1000);
   }
 
   get models() {
