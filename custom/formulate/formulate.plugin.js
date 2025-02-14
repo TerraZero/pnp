@@ -12,6 +12,24 @@ export default () => {
         },
       },
 
+      json: {
+        classification: 'text',
+        component: 'FormulateJSON',
+      },
+
+      action: {
+        classification: 'button',
+        component: 'FormulateAction',
+      },
+
+      reference: {
+        classification: 'text',
+        component: 'FormulateReference',
+        slotProps: {
+          component: ['ref'],
+        },
+      },
+
       wrapper: {
         component: 'FormulateWrapper',
         slotProps: {

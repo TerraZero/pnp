@@ -21,8 +21,8 @@ export default {
       return this.component.parent ? this.ws.getComponent(this.component.parent) : null;
     },
 
-    close() {
-      this.ws.closeComponent(this.component.key);
+    close(result = null) {
+      this.ws.closeComponent(this.component.key, result);
     },
 
     open(component, params = {}, info = {}) {

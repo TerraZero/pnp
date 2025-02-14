@@ -21,7 +21,9 @@ export default {
   css: [],
 
   plugins: [
+    '~/plugins/element.js',
     '~/plugins/shortkey.js',
+    '~/plugins/jsoneditor.js',
     '~/custom/formulate/formulate.plugin.js',
     '~/custom/loaders/plugin.loader.js',
   ],
@@ -45,7 +47,7 @@ export default {
 
   build: {
 
-    transpile: [/^\\zero-/, 'uuid'],
+    transpile: [/^\\zero-/, 'uuid', 'json-editor-vue'],
 
   },
 

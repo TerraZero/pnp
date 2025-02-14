@@ -12,7 +12,9 @@
 <script>
 export default {
 
-  inject: ['wsc'],
+  inject: {
+    wsc: { default: null },
+  },
 
   data() {
     return {

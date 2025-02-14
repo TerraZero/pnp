@@ -28,9 +28,42 @@
  * @property {(context: T_PropHandlerContext) => any} init
  */
 
+/**
+ * @typedef {Object} T_TypeHandlerContext
+ * @property {FormField} field
+ * @property {import('../form.module').T_FormulateFieldOptions} schema
+ */
+
+/**
+ * @typedef {Object} T_TypeHanderItem
+ * @property {string} type
+ * @property {(context: T_TypeHandlerContext) => any} prepare
+ * @property {(context: T_TypeHandlerContext) => any} post
+ */
+
 const FormField = require('./FormField');
 
 module.exports = class FormBuilder {
+
+  /**
+   * @param {T_TypeHanderItem} handler 
+   * @returns {this}
+   */
+  static setTypeHandler(handler) {
+    if (this._typeHandler === undefined) {
+      this._typeHandler = {};
+    }
+    this._typeHandler[handler.type] = handler;
+    return this;
+  }
+
+  /**
+   * @param {string} type 
+   * @returns {?T_TypeHanderItem}
+   */
+  static getTypeHandler(type) {
+    return this._typeHandler && this._typeHandler[type] || null;
+  }
 
   /**
    * @param {T_PropHandlerItem} handler 
@@ -62,6 +95,13 @@ module.exports = class FormBuilder {
     if (value.startsWith('@')) {
       prefix = '@';
       value = value.substring(1);
+      return {
+        prop, 
+        name: value, 
+        prefix, 
+        event: value,
+        path: '',
+      };
     } else if (value.startsWith(':')) {
       prefix = ':';
       value = value.substring(1);
@@ -130,6 +170,9 @@ module.exports = class FormBuilder {
     field.build = options;
     field.schema = schema;
 
+    const typeHandler = this.getTypeHandler(options.type);
+    if (typeHandler) typeHandler?.prepare({ field, schema: options });
+
     for (const prop in options) {
       const parse = this.constructor.getPropParse(prop);
       const handler = this.getPropHandler(parse.name);
@@ -163,6 +206,8 @@ module.exports = class FormBuilder {
       }
     }
 
+    if (typeHandler?.post) typeHandler?.post({ field, schema: options });
+
     if (this.form === null) {
       if (this._group === null) {
         parent.schema.children ??= [];
@@ -194,6 +239,14 @@ module.exports = class FormBuilder {
    */
   getPropHandler(propname) {
     return this.constructor.getPropHandler(propname);
+  }
+
+  /**
+   * @param {string} type 
+   * @returns {?T_TypeHanderItem}
+   */
+  getTypeHandler(type) {
+    return this.constructor.getTypeHandler(type);
   }
 
 }

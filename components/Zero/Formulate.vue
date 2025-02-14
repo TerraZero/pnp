@@ -1,5 +1,7 @@
 <template lang="pug">
-FormulateForm.zero-formulate(v-if="schema", v-model="values", :schema="schema", @submit="onSubmit")
+.zero-formulate
+  FormulateForm.zero-formulate__form(v-if="schema && !error", v-model="values", :schema="schema", @submit="onSubmit")
+  h2.zero-formulate__error(v-if="error") {{ error }}
 </template>
 
 <script>
@@ -7,7 +9,22 @@ import ZERO from '~/custom/plugins/zero.plugin';
 
 export default {
 
-  props: ['form', 'inline'],
+  props: {
+    form: {
+      type: String,
+      required: true,
+    },
+    inline: {
+      type: Boolean,
+    },
+    info: {
+      type: Object,
+    },
+  },
+
+  inject: {
+    wsc: { default: null },
+  },
 
   created() {
     this._form = null;
@@ -18,6 +35,7 @@ export default {
     return {
       values: null,
       schema: null,
+      error: false,
     };
   },
 
@@ -27,14 +45,18 @@ export default {
       if (this._form === null) {
         this._form = await ZERO.get(this.form);
         this._form.setMount(this);
-        await this._form.prepare();
+        await this._form.doPrepare(this.info, this);
         this.schema = this._form.schema();
       }
     },
 
-    onSubmit() {
+    onSubmit(values) {
       if (!this.inline) this._form.doSubmit();
       this.$emit('submit', { form: this._form });
+    },
+
+    setFatalError(error) {
+      this.error = error;
     },
 
   },
@@ -57,23 +79,28 @@ export default {
   --form-size-area-height: calc(var(--form-size) * 6)
   --form-color: black
   --form-color-input: var(--form-color)
+  --form-color-disabled: #555
   --form-color-label: var(--form-color)
   --form-color-border: var(--form-color)
   --form-color-button: var(--form-color)
+  --form-color-error: red
   --form-color-bg: white
   --form-color-bg-mark: #CCC
   --form-color-bg-input: var(--form-color-bg)
+  --form-color-bg-disabled: #0003
   --form-color-bg-button: var(--form-color-bg-input)
   --form-color-bg-group: var(--form-color-bg-mark)
 
   font-size: var(--form-size)
-  display: grid
-  gap: var(--form-size-gap)
   color: var(--form-color)
   padding: var(--form-size-outer-gap)
 
   & + &
     margin-top: var(--form-size-gap)
+
+  &__form
+    display: grid
+    gap: var(--form-size-gap)
 
   input,
   button,
@@ -93,6 +120,10 @@ export default {
     padding: var(--form-size-padding-input) calc(var(--form-size-padding-input) * 2)
     background: var(--form-color-bg-input)
     color: var(--form-color-input)
+
+    &[disabled]
+      color: var(--form-color-disabled)
+      background: var(--form-color-bg-disabled)
 
   input[type="color"]
     height: var(--form-size-input-color)
@@ -173,4 +204,8 @@ export default {
 
   .form-hide
     display: none
+
+  .formulate-input-errors
+    color: var(--form-color-error)
+    font-size: .8em
 </style>

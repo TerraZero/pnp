@@ -26,7 +26,7 @@ module.exports = class EntityCollector extends SystemCollector {
     if (this._storage === undefined) {
       this._storage = SystemCollector.get('service.storage');
     }
-    return new Construct(this._storage);
+    return new Construct(item, this._storage);
   }
 
 }

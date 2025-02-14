@@ -11,13 +11,19 @@ module.exports = class PagesAction extends ActionBase {
     collector.add('demo');
   }
 
-  async actions(items) {
+  async getActions(items) {
     items.push({
       name: 'OPEN: Grid',
       tags: ['open'],
       commands: new MethodProxy({ service: 'remote.router' }).open('CustomGrid', {}, {title: 'Cool Oder'}).chain,
     });
-    return items;
+    items.push({
+      name: 'TEST: Edit building',
+      tags: ['edit', 'test'],
+      commands: new MethodProxy({ service: 'remote.router' })
+        .open('ZeroFormulate', { info: { params: { game: 'paycyber', building: 1 } }, form: 'form.building.edit' })
+        .chain,
+    });
   }
 
 }

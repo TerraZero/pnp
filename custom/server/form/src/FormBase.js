@@ -25,6 +25,7 @@ module.exports = class FormBase {
     this.system = system;
     this.mount = null;
     this.fields = [];
+    this.info = null;
     this._schema = null;
   }
 
@@ -39,6 +40,10 @@ module.exports = class FormBase {
 
   set values(value) {
     this.mount.values = value;
+  }
+
+  async goto(url) {
+    return (await this.system.get('remote.router')).goto(url);
   }
 
   /**
@@ -86,9 +91,10 @@ module.exports = class FormBase {
     return this._schema;
   }
 
-  async doPrepare() {
-    this.system.events.trigger(FormBase.EVENT__FORM_PREPARE, { form: this });
-    await this.prepare();
+  async doPrepare(info = {}) {
+    this.info = info;
+    this.system.events.trigger(FormBase.EVENT__FORM_PREPARE, { form: this, info });
+    await this.prepare(info);
   }
 
   async doSubmit() {
@@ -101,7 +107,7 @@ module.exports = class FormBase {
    */
   build(builder) { }
 
-  async prepare() { }
+  async prepare(info) { }
 
   async submit() { }
 

@@ -10,7 +10,9 @@ const { Prisma, PrismaClient } = require('@prisma/client');
  * @property {string} name
  * @property {string} type
  * @property {boolean} required
+ * @property {boolean} reference
  * @property {boolean} primary
+ * @property {Object<string, any>} options
  */
 
 /**
@@ -27,6 +29,23 @@ module.exports = class StorageService {
    */
   static define(collector) {
     collector.add('storage');
+  }
+
+  /**
+   * @param {string} input 
+   * @returns {Object}
+   */
+  static getObjectParse(input) {
+    const match = input.match(/\{.*\}/s);
+    if (match) {
+      try {
+        return Function(`'use strict'; return (${match[0]})`)();
+      } catch (error) {
+        console.error("Invalid JavaScript object format:", error);
+        return {};
+      }
+    }
+    return {};
   }
 
   constructor() {
@@ -62,6 +81,8 @@ module.exports = class StorageService {
               type: field.documentation?.includes('[JSON]') ? 'Json' : field.type,
               required: field.isRequired,
               primary: field.isId,
+              reference: field.kind === 'object',
+              options: StorageService.getObjectParse(field.documentation ?? ''),
             };
           }),
         };

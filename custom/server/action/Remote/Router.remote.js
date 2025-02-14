@@ -22,7 +22,7 @@ module.exports = class RouterRemote {
   }
 
   open(component, params = [], info = {}, parent = null) {
-    this.windowStack().addComponent(component, params, info, parent);
+    return this.windowStack().addComponent(component, params, info, parent);
   }
 
   close(key) {

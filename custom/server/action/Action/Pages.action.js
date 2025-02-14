@@ -18,7 +18,7 @@ module.exports = class PagesAction extends ActionBase {
     collector.add('pages');
   }
 
-  async actions(items) {
+  async getActions(items) {
     const pages = PagesAction.Pages();
 
     for (const page in pages) {
@@ -34,7 +34,6 @@ module.exports = class PagesAction extends ActionBase {
         commands: new MethodProxy({ service: 'remote.router' }).goto(path).chain,
       });
     }
-    return items;
   }
 
 }

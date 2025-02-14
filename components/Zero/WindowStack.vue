@@ -17,6 +17,7 @@
 </template>
 
 <script>
+import Handler from 'events';
 import ZERO from '~/custom/plugins/zero.plugin';
 
 export default {
@@ -99,11 +100,17 @@ export default {
     },
 
     onDown() {
-      this.select = Math.min(this.options.length - 1, ++this.select);
+      this.select++;
+      if (this.select >= this.options.length) {
+        this.select = 0;
+      }
     },
 
     onUp() {
-      this.select = Math.max(0, --this.select);
+      this.select--;
+      if (this.select < 0) {
+        this.select = this.options.length - 1;
+      }
     },
 
     async onEnter() {
@@ -118,13 +125,16 @@ export default {
     },
 
     addComponent(component, params = {}, info = {}, parent = null) {
-      const item = { component, params, parent: parent ?? this, key: this.key++, info };
+      const item = { component, params, parent: parent ?? this, key: this.key++, info, events: new Handler() };
       this.components.push(item);
       return item;
     },
 
-    closeComponent(key) {
+    closeComponent(key, result = null) {
+      const component = this.getComponent(key);
+      component.events.emit('close', { component, key, result });
       this.components.splice(this.getComponentIndex(key), 1);
+      component.events.emit('resolve', { component, key, result });
     },
 
     getComponent(key) {

@@ -6,13 +6,11 @@
 </template>
 
 <script>
+import StringUtil from 'zero-util/src/StringUtil';
+
 export default {
 
   props: ['context'],
-
-  data() {
-    return {};
-  },
 
   computed: {
 
@@ -24,7 +22,7 @@ export default {
       let layout = this.context.slotProps.component.layout ?? null;
       if (typeof layout === 'string') {
         layout = {
-          comp: layout,
+          comp: StringUtil.pathToPascalCase('layout/' + layout),
         };
       }
       if (layout === null) {
