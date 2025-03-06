@@ -1,7 +1,14 @@
+const RemoteSystem = require('zero-system/src/RemoteSystem');
 const JSONUtil = require('zero-util/src/JSONUtil');
 
 const FormBuilder = require('./FormBuilder');
 const FormField = require('./FormField');
+
+/**
+ * @typedef {Object} E_FormSchemaBuildEvent
+ * @property {import('./FormBase')} form
+ * @property {FormBuilder} builder
+ */
 
 module.exports = class FormBase {
 
@@ -16,6 +23,24 @@ module.exports = class FormBase {
    */
   static factory(system) {
     return new this(system);
+  }
+
+  /**
+   * @param {(event: E_FormSchemaBuildEvent) => void} listener 
+   * @param {string} filterType
+   * @returns {this}
+   */
+  static onSchemaBuild(listener, filterType = null) {
+    if (filterType === null) {
+      RemoteSystem.events.on(FormBase.EVENT__FORM_SCHEMA_BUILD, listener);
+    } else {
+      RemoteSystem.events.on(FormBase.EVENT__FORM_SCHEMA_BUILD, event => {
+        if (event.form.info.params.generate === 'entity.' + filterType) {
+          listener(event);
+        }
+      });
+    }
+    return this;
   }
 
   /**
@@ -86,7 +111,7 @@ module.exports = class FormBase {
       root.schema = this._schema;
       this.addField(root);
       this.build(builder);
-      this.system.events.emit(FormBase.EVENT__FORM_SCHEMA_BUILD, { form: this });
+      this.system.events.emit(FormBase.EVENT__FORM_SCHEMA_BUILD, { form: this, builder });
     }
     return this._schema;
   }

@@ -1,0 +1,15 @@
+model Audio {
+  id Int @id @default(autoincrement()) /// { label: 'Audio ID' }
+  name String /// { key: 'label' }
+  game String /// { label: 'Game', disabled: true }
+  src String
+  value String @default("{}") /// [JSON]
+}
+
+model Image {
+  id Int @id @default(autoincrement()) /// { label: 'Image ID' }
+  name String /// { key: 'label' }
+  game String /// { label: 'Game', disabled: true }
+  src String
+  value String @default("{}") /// [JSON]
+}

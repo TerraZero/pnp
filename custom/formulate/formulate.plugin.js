@@ -26,7 +26,7 @@ export default () => {
         classification: 'text',
         component: 'FormulateReference',
         slotProps: {
-          component: ['ref'],
+          component: ['fieldschema'],
         },
       },
 

@@ -9,7 +9,33 @@ module.exports = class TileEntity extends ContentEntityBase {
    * @param {import('../../entity/Collector/Entity.collector')} collector 
    */
   static define(collector) {
-    collector.add('tile').setTag('rmi').setTag(this.TAG_ENTITY_ACTIONS);
+    collector.addContentEntity('tile');
+  }
+
+  /** 
+   * @returns {T_ContentEntityInfo}
+   */
+  info() {
+    return {
+      type: 'tile',
+      label: 'Tile',
+      routes: {
+        edit: '/{game}/tile/{id}/edit',
+      },
+      keys: {
+        config: 'value.config',
+      },
+    };
+  }
+
+  /**
+   * @param {string} route 
+   * @param {import('prisma/prisma-client').Floor} data 
+   * @returns {import('prisma/prisma-client').Floor}
+   */
+  async getRouteData(route, data) {
+    data.game = await this.getGame(data.id);
+    return data;
   }
 
   /**
@@ -32,26 +58,19 @@ module.exports = class TileEntity extends ContentEntityBase {
   }
 
   /**
-   * @param {string} route 
-   * @param {import('prisma/prisma-client').Floor} data 
-   * @returns {import('prisma/prisma-client').Floor}
+   * @param {number} floor 
+   * @param {number} x 
+   * @param {number} y 
+   * @returns {boolean}
    */
-  async getRouteData(route, data) {
-    data.game = await this.getGame(data.id);
-    return data;
-  }
-
-  /** 
-   * @returns {T_ContentEntityInfo}
-   */
-  info() {
-    return {
-      type: 'tile',
-      label: 'Tile',
-      routes: {
-        edit: '/{game}/tile/{id}/edit',
+  async exists(floor, x, y) {
+    return (await this.query.count({
+      where: {
+        floor: { some: { id: floor } },
+        x,
+        y,
       },
-    };
+    })) > 0;
   }
 
 }

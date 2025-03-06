@@ -1,7 +1,7 @@
 const SystemCollector = require('zero-system/src/SystemCollector');
 
 const ActionBase = require('../../action/src/ActionBase');
-const { TAG_ENTITY_ACTIONS } = require('../src/EntityBase');
+const ContentEntityBase = require('../src/ContentEntityBase');
 
 module.exports = class ContentEntityAction extends ActionBase {
 
@@ -13,12 +13,38 @@ module.exports = class ContentEntityAction extends ActionBase {
   }
 
   async getEntityActions(items, query) {
-    for (const item of SystemCollector.finds(v => v.hasTag(TAG_ENTITY_ACTIONS))) {
+    for (const item of SystemCollector.finds(v => v.hasTag(ContentEntityBase.TAG_ENTITY_ACTIONS))) {
       /** @type {import('../src/ContentEntityBase')} */
       const entity = SystemCollector.get(item.name);
 
       if (query.type && query.type.length > 0 && !entity.info().type.includes(query.type)) continue;
       await entity.getEntityActions(items, query);
+    }
+  }
+
+  async getActionOptions(items, { option, search }) {
+    if (option.key === 'entity_type') {
+      for (const item of SystemCollector.finds(v => v.hasTag(ContentEntityBase.TAG_ENTITY_CONTENT))) {
+        /** @type {import('../src/ContentEntityBase')} */
+        const entity = SystemCollector.get(item.name);
+
+        items.push({
+          name: entity.info().label,
+          description: entity.info().description ?? 'Type: ' + entity.info().label,
+          value: entity.info().type,
+        });
+      }
+    } else if (option.key === 'id' && option.placeholders?.entity_type) {
+      /** @type {import('../src/ContentEntityBase')} */
+      const entity = SystemCollector.get('entity.' + option.placeholders.entity_type);
+
+      for (const item of await entity.list(search, 5)) {
+        items.push({
+          name: item.name,
+          description: 'ID: ' + item.id,
+          value: item.id,
+        });
+      }
     }
   }
 

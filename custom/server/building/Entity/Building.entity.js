@@ -9,7 +9,7 @@ module.exports = class BuildingEntity extends ContentEntityBase {
    * @param {import('../../entity/Collector/Entity.collector')} collector 
    */
   static define(collector) {
-    collector.add('building').setTag('rmi').setTag(this.TAG_ENTITY_ACTIONS);
+    collector.addContentEntity('building');
   }
 
   /** 
@@ -21,6 +21,9 @@ module.exports = class BuildingEntity extends ContentEntityBase {
       label: 'Building',
       routes: {
         edit: '/{game}/building/{id}/edit',
+      },
+      keys: {
+        config: 'value.config',
       },
     };
   }

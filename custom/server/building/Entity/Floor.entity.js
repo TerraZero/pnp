@@ -9,7 +9,33 @@ module.exports = class FloorEntity extends ContentEntityBase {
    * @param {import('../../entity/Collector/Entity.collector')} collector 
    */
   static define(collector) {
-    collector.add('floor').setTag('rmi').setTag(this.TAG_ENTITY_ACTIONS);
+    collector.addContentEntity('floor');
+  }
+
+  /** 
+   * @returns {T_ContentEntityInfo} 
+   */
+  info() {
+    return {
+      type: 'floor',
+      label: 'Floor',
+      routes: {
+        edit: '/{game}/floor/{id}/edit',
+      },
+      keys: {
+        config: 'value.config',
+      },
+    };
+  }
+
+  /**
+   * @param {string} route 
+   * @param {import('prisma/prisma-client').Floor} data 
+   * @returns {import('prisma/prisma-client').Floor}
+   */
+  async getRouteData(route, data) {
+    data.game = await this.getGame(data.id);
+    return data;
   }
 
   /**
@@ -39,29 +65,6 @@ module.exports = class FloorEntity extends ContentEntityBase {
     });
     
     return result?.building[0]?.game ?? null;
-  }
-
-  /**
-   * @param {string} route 
-   * @param {import('prisma/prisma-client').Floor} data 
-   * @returns {import('prisma/prisma-client').Floor}
-   */
-  async getRouteData(route, data) {
-    data.game = await this.getGame(data.id);
-    return data;
-  }
-
-  /** 
-   * @returns {T_ContentEntityInfo} 
-   */
-  info() {
-    return {
-      type: 'floor',
-      label: 'Floor',
-      routes: {
-        edit: '/{game}/floor/{id}/edit',
-      },
-    };
   }
 
 }

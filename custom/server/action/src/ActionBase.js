@@ -4,4 +4,6 @@ module.exports = class ActionBase {
 
   async getEntityActions(items, query) { }
 
+  async getActionOptions(items, option) { }
+
 }

@@ -1,14 +1,16 @@
 <template lang="pug">
 .formulate-reference.formulate-input-element(:class="classes", :data-type="context.type")
-  .formulate-reference__input-wrapper
-    input(type="text", v-model="proxy", @input="onInput", v-bind="context.attributes")
-    ElButton(@click="onClick")
-      span.el-icon-circle-plus-outline
-  ElTable(:data="table", size="mini", :show-header="false", empty-text=" ", v-loading="loading")
-    ElTableColumn(prop="type", label="Type")
-    ElTableColumn(prop="id", label="ID")
-    ElTableColumn(prop="name", label="Name")
-  ZeroEntitySelectList(ref="dialog", :exclude="[value]", @select="onSelect")
+  ElTable(v-if="table.length", :data="table", size="mini", :show-header="false", empty-text=" ", v-loading="loading")
+    ElTableColumn(v-for="(field, index) in fields", :key="index", :prop="index", :label="field")
+    ElTableColumn(label="Operations")
+      template(slot-scope="{ $index }")
+        ElButton(v-if="fieldop.select", size="mini", @click="onSelect($index)") Select
+        ElButton(v-if="fieldop.edit", size="mini", @click="onEdit($index)") Edit
+        ElButton(v-if="fieldop.delete", type="danger", size="mini", @click="onDelete($index)") Delete
+  ElPagination.formulate-reference__pager(v-if="values.length > 10", background, layout="prev, pager, next", :current-page.sync="page", :total="values.length")
+  ElButton(v-if="(!single || !table.length) && fieldop.add", class="formulate-reference__add", @click="onAdd")
+    span.el-icon-circle-plus-outline
+  ZeroEntitySelectList(ref="dialog", @select="onSelectResult")
   
 </template>
 
@@ -34,17 +36,19 @@ export default {
 
   },
 
-  mounted() {
-    this.update();
-    this.proxy = this.value;
+  async mounted() {
+    this._refType = await ZERO.get(this.refID, { timeout: 40000 });
+    this.refKeys = await this._refType.keys();
+    await this.update();
   },
 
   data() {
     return {
       loading: false,
-      table: [],
-      proxy: null,
       _refType: null,
+      refKeys: null,
+      loaded: {},
+      page: 1,
     };
   },
 
@@ -61,67 +65,165 @@ export default {
       return this.context.model;
     },
 
-    value() {
-      return this.model && this.model[0] && this.model[0].id || null;
+    fieldschema() {
+      return this.context.slotProps.component.fieldschema ?? null;
     },
 
-    propRef() {
-      return this.context.slotProps.component.ref ?? null;
+    single() {
+      return this.fieldschema.options.single ?? false;
+    },
+
+    fields() {
+      if (!this.refKeys) return [];
+      const fields = {};
+      for (const index in this.refKeys) {
+        fields[this.refKeys[index]] = index;
+      }
+      return fields;
+    },
+
+    fieldop() {
+      return {
+        add: true,
+        edit: true,
+        delete: true,
+        select: true,
+        ...this.fieldschema.options.op,
+      };
+    },
+
+    refID() {
+      return this.fieldschema.options.ref ?? 'entity.' + this.fieldschema.type.toLowerCase();
     },
 
     title() {
-      return 'Select ' + this.propRef.split('.')[1];
+      return 'Select ' + this.refID.split('.')[1];
     },
 
     dialog() {
       return this.$refs.dialog;
     },
 
+    values() {
+      const values = [];
+      if (this.single) {
+        if (this.model.id) {
+          values.push(this.model.id);
+        }
+      } else {
+        for (const item of this.model) {
+          values.push(item.id);
+        }
+      }
+      return values;
+    },
+
+    table() {
+      return this.values.slice((this.page - 1) * 10, this.page * 10).map(id => {
+        if (this.loaded[id]) return this.loaded[id];
+        const row = { id };
+
+        for (const field in this.fields) {
+          if (field === 'id') continue;
+          row[field] = '<LADE>';
+        }
+        return row;
+      });
+    },
+
   },
 
   methods: {
 
-    onInput() {
-      this.context.model = [{ id: parseInt(this.proxy) }];
+    addValue(value) {
+      if (this.single) {
+        this.setValue(value);
+      } else {
+        this.context.model.push({ id: value });
+      }
     },
 
-    onSelect(select) {
-      this.proxy = select.id;
-      this.onInput();
-      this.dialog.close();
+    setValue(value, index = 0) {
+      if (this.single) {
+        this.context.model = { id: value };
+      } else {
+        this.$set(this.model, index, { id: value });
+      }
     },
 
-    onClick() {
-      this.dialog.open({
-        type: this.propRef,
+    async onEdit(index = 0) {
+      /** @type {import('~/custom/server/form/Remote/Form.remote')} */
+      const forms = await ZERO.get('remote.form');
+
+      forms.open('form.generate.edit', { id: this.values[index], generate: this.refID }, {}, () => {
+        this.loadMetaData(this.values[index], true);
       });
     },
 
-    async getRefType() {
-      if (!this._refType && this.propRef) {
-        if (this.propRef === 'entity.tile') return null;
-        this._refType = await ZERO.get(this.propRef);
+    onPageChange() {
+
+    },
+
+    onAdd() {
+      this.dialog.open({
+        type: this.refID,
+        exclude: this.getExclude(),
+        data: {
+          add: true,
+        },
+      });
+    },
+
+    onSelect(index) {
+      this.dialog.open({
+        type: this.refID,
+        exclude: this.getExclude(index),
+        data: {
+          selected: index,
+        },
+      });
+    },
+
+    onDelete(index) {
+      if (this.single) {
+        this.context.model = [];
+      } else {
+        this.model.splice(index, 1);
       }
-      return this._refType;
+    },
+
+    onSelectResult({ dialog, row }) {
+      if (dialog.info.data.add) {
+        this.addValue(row.id);
+      } else if (dialog.info.data.selected !== undefined) {
+        this.setValue(row.id, dialog.info.data.selected);
+      }
+      this.dialog.close();
+    },
+
+    getExclude(ignore = null) {
+      return this.values.filter((v, i) => {
+        return i !== ignore;
+      });
     },
 
     async update() {
       this.loading = true;
-      if (this.value) {
-        const ref = await this.getRefType();
-        if (ref === null) return;
-        const info = await ref.info();
-        const value = await ref.load(this.value);
-        if (value) {
-          value.type = info.label;
-          this.table = [
-            value,
-          ];
-        } else {
-          this.table = [];
+      if (this.values.length && this._refType) {
+        const loads = [];
+        for (const id of this.values) {
+          loads.push(this.loadMetaData(id));
         }
+        await Promise.all(loads);
       }
       this.loading = false;
+    },
+
+    async loadMetaData(id, overwrite = false) {
+      if (!this.loaded[id] || overwrite) {
+        this.$set(this.loaded, id, await this._refType.load(id));
+      }
+      return this.loaded[id];
     },
 
   },
@@ -131,9 +233,19 @@ export default {
 
 <style lang="sass">
 .formulate-reference
+  border: 1px solid black
+  padding: .2em
+  box-sizing: border-box
   
   &__input-wrapper
     display: flex
+
+  &__add
+    width: 100%
+
+  & &__pager
+    text-align: center
+    padding: .4em 0
 
 </style>
   

@@ -1,4 +1,5 @@
 const { Prisma, PrismaClient } = require('@prisma/client');
+const { SystemCollector } = require('zero-system/src/SystemItem');
 
 /**
  * @typedef {(tx: PrismaClient)} C_TransactionCallback
@@ -30,6 +31,8 @@ module.exports = class StorageService {
   static define(collector) {
     collector.add('storage');
   }
+
+  static EVENT_SCHEMA_ALTER = 'storage.schema.alter';
 
   /**
    * @param {string} input 
@@ -87,6 +90,7 @@ module.exports = class StorageService {
           }),
         };
       });
+      SystemCollector.get('root').events.emit(StorageService.EVENT_SCHEMA_ALTER, { storage: this, schema: this._schema });
     }
     return this._schema;
   }

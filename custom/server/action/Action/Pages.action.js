@@ -31,7 +31,7 @@ module.exports = class PagesAction extends ActionBase {
         name: 'Page: ' + (path === '/' ? '[FRONT]' : Path.basename(path)) + ' >',
         description: 'Goto page "' + path + '"',
         tags: ['goto'],
-        commands: new MethodProxy({ service: 'remote.router' }).goto(path).chain,
+        commands: new MethodProxy({ service: 'remote.router' }).wsgoto('/' + path).chain,
       });
     }
   }

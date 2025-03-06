@@ -13,6 +13,10 @@ module.exports = class EntityBase {
     this.init();
   }
 
+  get type() {
+    return this._item.name;
+  }
+
   /** @returns {import('../Service/Storage.service')} */
   get storage() {
     return this._storage;

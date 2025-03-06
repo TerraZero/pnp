@@ -18,12 +18,16 @@ export default {
 
   ssr: false,
 
-  css: [],
+  css: [
+    'element-ui/lib/theme-chalk/index.css',
+    '~/custom/styles/index.sass',
+  ],
 
   plugins: [
     '~/plugins/element.js',
     '~/plugins/shortkey.js',
     '~/plugins/jsoneditor.js',
+    '~/plugins/debounce.js',
     '~/custom/formulate/formulate.plugin.js',
     '~/custom/loaders/plugin.loader.js',
   ],

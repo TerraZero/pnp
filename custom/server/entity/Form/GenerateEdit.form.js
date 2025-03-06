@@ -6,7 +6,7 @@ const FormBase = require('../../form/src/FormBase');
 module.exports = class GenerateEditForm extends FormBase {
 
   /**
-   * @param {import('../Collector/FormCollector')} collector 
+   * @param {import('~/custom/server/form/Collector/Form.collector')} collector 
    */
   static define(collector) {
     collector.add('generate.edit');
@@ -33,6 +33,7 @@ module.exports = class GenerateEditForm extends FormBase {
       const item = {
         name: field.name,
         label: field.options.label ?? StringUtil.ucFirst(field.name),
+        fieldschema: field,
       };
 
       switch (field.type) {
@@ -43,7 +44,6 @@ module.exports = class GenerateEditForm extends FormBase {
 
       if (field.reference) {
         item.type = 'reference';
-        item.ref = field.options.ref ?? 'entity.' + field.type.toLowerCase();
       }
 
       if (field.type === 'Int') {
@@ -87,7 +87,6 @@ module.exports = class GenerateEditForm extends FormBase {
           '@action': this.onAbort.bind(this),
         });
     });
-
   }
 
   async submit() {
@@ -97,7 +96,7 @@ module.exports = class GenerateEditForm extends FormBase {
       message: 'Save the entity ' + result.name,
       type: 'success',
       position: 'bottom-right',
-    }); 
+    });
 
     if (this.mount.wsc) {
       this.mount.wsc.close(result);
@@ -107,6 +106,8 @@ module.exports = class GenerateEditForm extends FormBase {
         this.goto(path);
       }
     }
+
+    this.values = await this.generate.load(parseInt(this.info.params.id), true);
   }
 
   onAbort() {

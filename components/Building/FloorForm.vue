@@ -6,14 +6,14 @@
     ElTableColumn(prop="name", label="Name")
     ElTableColumn
       template(slot-scope="{ row }")
-        ElButton(type="primary", icon="el-icon-edit", @click="onEdit(row)") Edit
+        ElButton(size="mini", icon="el-icon-aim", @click="onSelect(row)")
+        ElButton(type="primary", size="mini", icon="el-icon-edit", @click="onEdit(row)")
+    
 </template>
 
 <script>
 const RemoteSystem = require('zero-system/src/RemoteSystem');
 
-/** @type {import('~/custom/server/building/Entity/Floor.entity')} */
-let floorStorage = null;
 /** @type {import('~/custom/server/form/Remote/Form.remote')} */
 let forms = null;
 
@@ -25,20 +25,20 @@ export default {
   },
 
   async mounted() {
-    floorStorage = await RemoteSystem.get('entity.floor');
     forms = await RemoteSystem.get('remote.form');
-
-    this.floors = await floorStorage.getFloorsFromBuilding(this.editor.building.id);
-    console.log(this.floors);
   },  
 
   data() {
     return {
-      floors: [],
+      gap: 10,
     };
   },
 
   computed: {
+
+    floors() {
+      return this.editor.floors;
+    },
 
     sorted() {
       return this.floors.sort((a, b) => {
@@ -55,9 +55,11 @@ export default {
         game: 'paycyber',
         id: row.id,
         generate: 'entity.floor',
-      }, {}, async () => {
-        this.floors = await floorStorage.getFloorsFromBuilding(this.editor.building.id);
       });
+    },
+
+    onSelect(row) {
+      this.editor.setSelectFloor(row.id);
     },
 
   },
@@ -67,10 +69,12 @@ export default {
 
 
 <style lang="sass">
-.building-form
-  display: grid
-  gap: .5em
-  margin: .5em
+.building-floor-form
+
+  &__form
+    display: grid
+    gap: .5em
+    margin: .5em
 
 </style>
       

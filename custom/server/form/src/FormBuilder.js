@@ -161,9 +161,10 @@ module.exports = class FormBuilder {
   /**
    * @param {import('../form.module').T_FormulateFieldOptions} options 
    * @param {(builder: FormBuilder) => void} children
+   * @param {?number} pos
+   * @returns {this}
    */
-  field(options, children = null) {
-    const parent = this.getField(this.parents);
+  field(options, children = null, pos = null) {
     const schema = {};
     const field = new FormField(this, options.name, this.getFieldID([...this.parents, options.name]));
     this.getForm().addField(field);
@@ -208,24 +209,69 @@ module.exports = class FormBuilder {
 
     if (typeHandler?.post) typeHandler?.post({ field, schema: options });
 
-    if (this.form === null) {
-      if (this._group === null) {
-        parent.schema.children ??= [];
-        parent.schema.children.push(schema); 
-      } else {
-        parent.schema.group ??= {};
-        parent.schema.group[this._group] ??= [];
-        parent.schema.group[this._group].push(schema);
-      }
-    } else {
-      parent.schema.push(schema);
-    }
+    this.addField(schema, pos);
 
     if (typeof children === 'function') {
       children(new FormBuilder({ parents: [...this.parents, options.name], wrapper: this }));
     }
 
     return this;
+  }
+
+  /**
+   * @param {Object} schema 
+   * @param {?number} pos 
+   * @returns {this}
+   */
+  addField(schema, pos = null) {
+    const parent = this.getField(this.parents);
+
+    const addToArray = (array, value) => {
+      if (pos === null) {
+        array.push(value);
+      } else {
+        array.splice(pos, 0, value);
+      }
+    };
+
+    if (this.form === null) {
+      if (this._group === null) {
+        parent.schema.children ??= [];
+        addToArray(parent.schema.children, schema);
+      } else {
+        parent.schema.group ??= {};
+        parent.schema.group[this._group] ??= [];
+        addToArray(parent.schema.group[this._group], schema);
+      }
+    } else {
+      addToArray(parent.schema, schema);
+    }
+
+    return this;
+  }
+
+  /**
+   * @param {(string|string[])} after
+   * @param {import('../form.module').T_FormulateFieldOptions} options 
+   * @param {(builder: FormBuilder) => void} children
+   */
+  fieldBefore(after, options, children = null) {
+    const id = this.getFieldID(after);
+    const field = this.getField(id);
+    const pos = field.getParent().getChildrenIndex(field.name);
+    return this.field(options, children, pos);
+  }
+
+  /**
+   * @param {(string|string[])} after
+   * @param {import('../form.module').T_FormulateFieldOptions} options 
+   * @param {(builder: FormBuilder) => void} children
+   */
+  fieldAfter(after, options, children = null) {
+    const id = this.getFieldID(after);
+    const field = this.getField(id);
+    const pos = field.getParent().getChildrenIndex(field.name);
+    return this.field(options, children, pos + 1);
   }
 
   group(group) {

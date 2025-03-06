@@ -1,4 +1,5 @@
 const SystemCollector = require('zero-system/src/SystemCollector');
+const ContentEntityBase = require('../src/ContentEntityBase');
 
 module.exports = class EntityCollector extends SystemCollector {
 
@@ -27,6 +28,19 @@ module.exports = class EntityCollector extends SystemCollector {
       this._storage = SystemCollector.get('service.storage');
     }
     return new Construct(item, this._storage);
+  }
+
+  /**
+   * @param {string} name 
+   * @param {number} timeout 
+   * @returns {SystemItem}
+   */
+  addContentEntity(name, timeout = 10000) {
+    return this.add(name)
+      .setTag('rmi')
+      .setTag(ContentEntityBase.TAG_ENTITY_CONTENT)
+      .setTag(ContentEntityBase.TAG_ENTITY_ACTIONS)
+      .setAttribute('rmi.timeout', timeout);
   }
 
 }

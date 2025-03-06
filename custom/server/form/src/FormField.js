@@ -28,6 +28,27 @@ module.exports = class FormField {
     this.state = {};
   }
 
+  getParentId() {
+    const ids = this.id.split('.');
+    ids.shift();
+    return ids.join('.');
+  }
+
+  /**
+   * @returns {FormField}
+   */
+  getParent() {
+    return this.builder.getField(this.getParentId());
+  }
+
+  /**
+   * @param {string} field 
+   * @returns {?number}
+   */
+  getChildrenIndex(field) {
+    return this.schema.findIndex(v => v.name === field);
+  }
+
   /**
    * @param {import('./FormBuilder').T_PropParse} parse 
    * @param {any} value 

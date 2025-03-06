@@ -36,22 +36,23 @@ module.exports = class RMIRemote {
   }
 
   /**
-   * @param {string} id 
+   * @param {Object} param0 
    * @returns {?Object}
    */
-  static async resolver(id) {
-    const info = await this.getInfo();
-    const data = info.find(v => v.name === id);
+  static async resolver({ key, id, info }) {
+    const rmis = await this.getInfo();
+    const data = rmis.find(v => v.name === id);
     if (data === null) return null;
-    const proxy = this.createProxy(data);
-    RemoteSystem.instance.set(data.name, proxy);
+    const proxy = this.createProxy(data, info.timeout ?? data.attributes['rmi.timeout'] ?? 1000);
+    RemoteSystem.instance.set(key, proxy);
     return proxy;
   }
 
   /**
    * @param {T_RemoteInfo} info
+   * @param {number} timeout
    */
-  static createProxy(info) {
+  static createProxy(info, timeout) {
     return new Proxy({}, {
 
       get(target, method, receiver) {
@@ -61,7 +62,7 @@ module.exports = class RMIRemote {
             info,
             method,
             args,
-          });
+          }, { timeout });
           if (result.meta.error) {
             throw new Error(result.meta.error);
           }

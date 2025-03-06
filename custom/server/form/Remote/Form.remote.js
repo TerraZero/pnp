@@ -4,7 +4,7 @@ const FormBuilder = require('../src/FormBuilder');
 module.exports = class FormRemote {
 
   /**
-   * @param {import('zero-system/src/Collector/RemoteCollector')} collector 
+   * @param {import('zero-system/src/Collector/Remote.collector')} collector 
    */
   static define(collector) {
     collector.add('form');

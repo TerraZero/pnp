@@ -6,7 +6,9 @@
       .zero-window-stack__content(v-for="(component, index) in components", :key="component.key")
         ZeroWindowStackContent(:index="index", :component="component")
     .zero-window-stack__form
-      input.zero-window-stack__input(ref="input", v-model="search", @input="onInput", @keydown.esc="onEscape", @keydown.down.prevent="onDown", @keydown.up.prevent="onUp", @keydown.enter.prevent="onEnter")
+      .zero-window-stack__info(v-if="requestInfos.length")
+        .zero-window-stack__info-line(v-for="line in requestInfos", :key="line") {{ line }}
+      input.zero-window-stack__input(ref="input", v-model="search", @input="onInput", @keydown.esc.stop.prevent="onEscape", @keydown.down.prevent="onDown", @keydown.up.prevent="onUp", @keydown.enter.prevent="onEnter")
       .zero-window-stack__items(v-if="options.length > 0")
         .zero-window-stack__item(v-for="(option, index) in options", :key="index", :class="itemClass(index)")
           .zero-window-stack__title {{ option.name }}
@@ -18,6 +20,9 @@
 
 <script>
 import Handler from 'events';
+
+import AsyncPromise from 'zero-util/src/AsyncPromise';
+
 import ZERO from '~/custom/plugins/zero.plugin';
 
 export default {
@@ -41,6 +46,7 @@ export default {
       select: 0,
       components: [],
       key: 0,
+      request: null,
     };
   },
 
@@ -73,6 +79,16 @@ export default {
       return [...this.suggestions, ...closeSuggestions];
     },
 
+    requestInfos() {
+      if (!this.request) return []; 
+      if (Array.isArray(this.request.info)) {
+        return this.request.info;
+      } else if (typeof this.request.info === 'string') {
+        return [this.request.info];
+      }
+      return [];
+    },
+
   },
 
   methods: {
@@ -81,6 +97,8 @@ export default {
       this.open = !this.open;
       if (this.open) {
         this.search = '';
+        this.suggestions = [];
+        this.request = null;
       }
       this.$nextTick(() => {
         this.$refs.input.focus();
@@ -89,6 +107,12 @@ export default {
 
     onEscape() {
       this.open = false;
+      if (this.request) {
+        this.request.timing.reject({
+          event: 'user.escape',
+        });
+        this.request = null;
+      }
     },
 
     async onInput() {
@@ -96,7 +120,11 @@ export default {
       /** @type {import('~/custom/server/action/Service/Action.service')} */
       const actions = await ZERO.get('service.action');
 
-      this.suggestions = await actions.getActions(this.search);
+      if (this.request) {
+        this.suggestions = await actions.getActionOptions(this.request.option, this.search);
+      } else {
+        this.suggestions = await actions.getActions(this.search);
+      }
     },
 
     onDown() {
@@ -114,7 +142,19 @@ export default {
     },
 
     async onEnter() {
-      await ZERO.executeActions(this.options[this.select]?.commands ?? []);
+      if (this.request) {
+        if (this.options.length) {
+          this.request.timing.resolve(this.options[this.select]);
+        } else {
+          this.request.timing.resolve({
+            value: this.search,
+            custom: true,
+          });
+        }
+        this.request = null;
+      } else {
+        await ZERO.executeActions(this.options[this.select]?.commands ?? []);
+      }
       this.open = false;
     },
 
@@ -145,6 +185,29 @@ export default {
       return this.components.findIndex(v => v.key === key);
     },
 
+    async getRequestOption(info, option) {
+      this.open = true;
+      this.search = '';
+      this.request = {
+        info,
+        option,
+        timing: new AsyncPromise(),
+      };
+      this.onInput();
+      return this.request.timing.promise;
+    },
+
+    notify(notify) {
+      const matches = [...notify.message.matchAll(/`([^`]+)`/g)];
+      for (const match of matches) {
+        notify.message = notify.message.replace(match[0], '<strong>' + match[1] + '</strong>');
+      }
+      if (matches.length) {
+        notify.dangerouslyUseHTMLString = true;
+      }
+      this.$notify(notify);
+    },
+
   },
 
 };
@@ -154,8 +217,8 @@ export default {
 .zero-window-stack
   --window-stack--content-margin: 2em
   position: relative
-  max-width: 100vw
-  max-height: 100vh
+  width: 100vw
+  height: 100vh
   overflow: auto
 
   &__overlay
@@ -168,6 +231,7 @@ export default {
     overflow: hidden
     background: rgba(0, 0, 0, .1)
     pointer-events: all
+    z-index: 1000
 
   &--open &__overlay
     display: block
@@ -250,6 +314,17 @@ export default {
     right: var(--window-stack--content-margin)
     background: white
     overflow: auto
+
+  &__info
+    padding: 4px 8px
+    background: var(--primary)
+    color: var(--pen-secondary)
+    font-weight: bold
+    font-style: italic
+
+  &__info-line + &__info-line
+    padding: 2px 0
+    border-top: 2px solid var(--pen-secondary)
 
 </style>
   

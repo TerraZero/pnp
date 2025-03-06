@@ -16,7 +16,7 @@ export default {
   handler: app,
 };
 
-Logger.setDebug(true);
+// Logger.setDebug(true);
 const root = new ZeroRoot(__dirname, '~/custom/server');
 
 SystemCollector.set('prisma', prisma);

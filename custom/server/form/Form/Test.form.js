@@ -5,7 +5,7 @@ const FormBase = require('../src/FormBase');
 module.exports = class TestForm extends FormBase {
 
   /**
-   * @param {import('../Collector/FormCollector')} collector 
+   * @param {import('../Collector/Form.collector')} collector 
    */
   static define(collector) {
     collector.add('test');

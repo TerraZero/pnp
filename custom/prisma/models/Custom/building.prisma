@@ -3,18 +3,24 @@ model Building {
   name String /// { key: 'label' }
   game String /// { label: 'Game', disabled: true }
   floors Floor[]
+  value String @default("{}") /// [JSON]
 }
 
 model Floor {
   id Int @id @default(autoincrement())
-  building Building[]
-  tiles Tile[]
+  building Building[] /// { single: true }
+  tiles Tile[] /// { op: { add: false, select: false, delete: false } }
   name String /// { key: 'label' }
-  floor Int
+  floor Int /// { label: 'Etage' }
+  width Int /// { label: 'Etagen Breite' }
+  height Int /// { label: 'Etagen Höhe' }
+  value String @default("{}") /// [JSON]
 }
 
 model Tile {
   id Int @id @default(autoincrement())
-  floor Floor[]
-  value String /// [JSON]
+  floor Floor[] /// { single: true }
+  x Int /// { label: 'X' }
+  y Int /// { label: 'Y' }
+  value String @default("{}") /// [JSON]
 }
