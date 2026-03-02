@@ -1,3 +1,4 @@
+require('module-alias/register')
 const SystemCollector = require('zero-system/src/SystemCollector');
 const scaffold = require('zero-scaffold');
 

@@ -56,7 +56,7 @@ export default {
 
   build: {
 
-    transpile: [/^\\zero-/, 'uuid', 'json-editor-vue'],
+    transpile: [/^(\\|\/)zero-/, 'uuid', 'json-editor-vue'],
 
   },
 
