@@ -22,6 +22,7 @@
           .page-temp-control__label {{ slideshow.label }}
       .page-temp-control__right.grid--flex-small
         .page-temp-control__playlist(v-for="playlist in playlists", :key="playlist.id")
+          TempImage.page-temp-control__image(:src="playlist.thumbnail")
           .page-temp-control__label {{ playlist.label }}
   TempDialog(:visible.sync="setting", editor, inset="2em", title="Settings")
     h2 Sound
@@ -33,6 +34,7 @@
 <script>
 import RemoteSystem from 'zero-system/src/RemoteSystem';
 import TimingUtil from 'zero-util/src/TimingUtil';
+import YoutubeUtil from '~/custom/util/YoutubeUtil';
 
 /** @type {import('~/custom/server/action/Remote/Router.remote')} */
 let _router = null;
@@ -53,9 +55,15 @@ export default {
 
     const playlists = [];
     for (const playlist of playlistresults.entities) {
+      let music = await playlist.getRef('musics', 0);
+
+      music = music.values();
+      const id = YoutubeUtil.getVideoId(music.src);
       playlists.push({
         id: playlist.id(),
         label: playlist.label(),
+        music,
+        thumbnail: YoutubeUtil.getVideoThumbnail(id),
       });
     }
 

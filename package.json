@@ -50,7 +50,7 @@
     "zero-vue": "github:TerraZero/zero-vue"
   },
   "_moduleAliases": {
-    "~": "."
+    "~": "./"
   },
   "devDependencies": {
     "sass-loader": "^10.5.2"
