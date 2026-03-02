@@ -142,6 +142,7 @@ module.exports = class TempStorage {
   }
 
   async getState(key, defaults = {}) {
+    _temp ??= await RemoteSystem.get('service.temp');
     const state = await _temp.find('tstate', { label: key });
     return Util.deepMergeOptions(defaults, state?.value ?? {});
   }

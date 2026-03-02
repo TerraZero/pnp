@@ -13,7 +13,7 @@ TempDialog.temp-entity-select(:visible.sync="show", editor, inset="2em", :title=
 <script>
 export default {
 
-  props: ['entity_type', 'excludes'],
+  props: ['entity_type', 'conditions', 'excludes'],
 
   data() {
     return {
@@ -54,10 +54,10 @@ export default {
     },
 
     async reload() {
-      const list = await this.entity_type.list({
-        label: { contains: this.search },
-        id: { notIn: this.excludes },
-      }, 10, this.pager.current);
+      const conditions = structuredClone(this.conditions ?? {});
+      conditions.label = { contains: this.search };
+      conditions.id = { notIn: this.excludes };
+      const list = await this.entity_type.list(conditions, 10, this.pager.current);
       this.result = list.entities;
       this.pager = list.pager;
     },

@@ -12,6 +12,7 @@
         ElButton(type="primary", @click="onSave") Save
         ElButton(type="danger", @click="onDelete") Delete
       EditorInputTextfield(v-model="values.label", label="Label")
+      TempTagsInput(v-model="values.tags", label="Tags", :options="{battle: 'Battle'}")
       ElTable(:data="musicsData")
         ElTableColumn(prop="id", label="ID")
         ElTableColumn(prop="label", label="Name")
@@ -24,7 +25,7 @@
           template(slot-scope="scope")
             ElButton(type="primary", size="small", icon="el-icon-edit", @click="onEdit(scope.row.music)") Edit
             ElButton(type="danger", size="small", icon="el-icon-document-delete", @click="onRemove('musics', scope.row.music)") Remove
-    TempEntitySelect(v-if="musics_type", :entity_type="musics_type", :excludes="musics_ids", ref="music_dialog", @submit="onMusicSubmit")
+    TempEntitySelect(v-if="musics_type", :entity_type="musics_type", :conditions="{ channel: 'music' }", :excludes="musics_ids", ref="music_dialog", @submit="onMusicSubmit")
 </template>
 
 <script>

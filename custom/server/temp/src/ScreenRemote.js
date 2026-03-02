@@ -25,7 +25,7 @@ module.exports = class ScreenRemote {
   }
 
   /**
-   * @param {number} id 
+   * @param {number} slideshow 
    */
   async setSlides(slideshow) {
     return await this.command({ func: 'setSlides', params: { slideshow } });
@@ -36,6 +36,20 @@ module.exports = class ScreenRemote {
    */
   async setSlideLock(image) {
     return await this.command({ func: 'setSlideLock', params: { image } });
+  }
+
+  /**
+   * @param {number} playlist 
+   */
+  async setPlaylist(playlist) {
+    return await this.command({ func: 'setPlaylist', params: { playlist } });
+  }
+
+  /**
+   * @param {number} volume 
+   */
+  async setMasterVolume(volume) {
+    return await this.command({ func: 'setMasterVolume', params: { volume } });
   }
 
 }

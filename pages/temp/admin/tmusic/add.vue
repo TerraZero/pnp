@@ -12,6 +12,8 @@
       EditorInputTextfield(v-model="values.label", label="Label")
       EditorInputSelect(v-model="values.type", label="Type", :options="{youtube: 'Youtube'}")
       EditorInputTextfield(v-model="values.src", label="Source")
+      EditorInputSelect(v-model="values.channel", label="Channel", :options="{music: 'Music', sound: 'Sound'}")
+      TempTagsInput(v-model="values.tags", label="Tags", :options="{battle: 'Battle'}")
       EditorInputTextfield(v-model="values.start", label="Start")
       EditorInputTextfield(v-model="values.end", label="End")
       EditorInputSlider(v-model="values.volume", label="Volume", :min="0", :max="1", :step="0.01", :track="false")

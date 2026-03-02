@@ -46,6 +46,7 @@
     "vue-shortkey": "^3.1.7",
     "vue-template-compiler": "^2.7.10",
     "webpack": "^4.47.0",
+    "yt-player": "^3.6.1",
     "ytdl-core": "^4.11.5",
     "zero-vue": "github:TerraZero/zero-vue"
   },

@@ -4,6 +4,7 @@
     TransitionGroup(name="fade")
       .page-temp-screen__slide(v-for="slide in slideCurrent", :key="slide.data.src")
         TempImage.page-temp-screen__image(:src="slide.data.src", :mutate="slide.data")
+  TempYoutubeVideo(ref="music")
 </template>
 
 <script>
@@ -22,14 +23,22 @@ export default {
     _router ??= await RemoteSystem.get('remote.router');
     _storage ??= await RemoteSystem.get('remote.tempstorage');
 
-    return { params };
+    const settings = await _storage.getState('control.settings', {
+      master_volume: .5,
+      slideshow_speed: 1,
+    });
+
+    return { params, settings };
   },
 
   async mounted() {
     clearInterval(_interval);
     _interval = setInterval(async () => {
       this.status = await _storage.screen().register();
-      await _storage.control().setStatus(this.slideshow !== null);
+      await _storage.control().setStatus(this.slideshow !== null, this.playlist !== null);
+      if (this.playlist !== null) {
+        await _storage.control().setPlaylist(this.playlist.id(), this.musicIndex);
+      }
     }, 1000);
     _storage.screen().init(async (request, mount, answer) => {
       let response = undefined;
@@ -39,6 +48,7 @@ export default {
       console.log('handler command.screen', request);
       answer(response ?? { status: 'ok' });
     });
+    this.$refs.music.setMasterVolume(this.settings.master_volume);
   },
 
   data() {
@@ -49,10 +59,20 @@ export default {
       slideIndex: -1,
       slideTimeout: null,
       slideLock: null,
+
+      playlist: null,
+      musics: null,
+      musicIndex: -1,
     };
   },
 
   methods: {
+
+    onClick() {
+      this.$refs.music.play({
+        src: 'https://www.youtube.com/watch?v=QWGEFLZi3q0',
+      });
+    },
 
     async setSlides(request, { slideshow }) {
       this.slideshow = await _storage.load('tslideshow', slideshow);
@@ -88,6 +108,26 @@ export default {
         clearTimeout(this.slideTimeout);
       }
       this.nextSlide();
+    },
+
+    async setPlaylist(request, { playlist }) {
+      this.playlist = await _storage.load('tplaylist', playlist);
+      this.musics = await this.playlist.getRef('musics');
+      this.musicIndex = -1;
+      this.nextMusic();
+    },
+
+    nextMusic() {
+      this.musicIndex = (this.musicIndex + 1) % this.musics.length;
+      _storage.control().setPlaylist(this.playlist.id(), this.musicIndex);
+      this.$refs.music.play(this.musics[this.musicIndex].values())
+        .then(() => {
+          this.nextMusic();
+        });
+    },
+
+    async setMasterVolume(request, { volume }) {
+      this.$refs.music.setMasterVolume(volume);
     },
 
   },

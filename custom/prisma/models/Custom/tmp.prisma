@@ -8,9 +8,11 @@ model Tmusic {
   label String /// { key: 'label' }
   src String
   type String /// { fallback: "youtube" }
+  channel String @default("music")
+  tags String @default("") /// { type: 'string_list', sep: ',' }
   start Int @default(0)
   end Int @default(0)
-  volume Float @default(0.5)
+  volume Float @default(0.75)
   playlists Tplaylist[]
   value String @default("{}") /// [JSON] { label: 'Configuration' }
 }
@@ -39,6 +41,7 @@ model Tplaylist {
   id Int @id @default(autoincrement()) /// { label: 'Image ID' }
   status Int @default(1)
   label String /// { key: 'label' }
+  tags String @default("") /// { type: 'string_list', sep: ',' }
   musics Tmusic[]
   value String @default("{}") /// [JSON] { label: 'Configuration' }
 }
@@ -51,6 +54,7 @@ model Tslideshow {
   id Int @id @default(autoincrement()) /// { label: 'Image ID' }
   status Int @default(1)
   label String /// { key: 'label' }
+  tags String @default("") /// { type: 'string_list', sep: ',' }
   images Timage[]
   value String @default("{}") /// [JSON] { label: 'Configuration' }
 }

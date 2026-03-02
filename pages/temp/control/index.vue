@@ -7,6 +7,7 @@
     template(#right)
       TempBreadcrumbState(icon="picture", :status="status.screen ? 'success' : 'error'")
       TempBreadcrumbState(icon="s-platform", :status="status.control ? 'success' : 'error'")
+      TempBreadcrumbButton(:status="battle ? 'success' : 'error'", unicode, @click="onBattle") ⚔️
       TempBreadcrumbButton(icon="s-tools", @click="onSetting")
       TempBreadcrumbButton(icon="s-home", to="/temp/admin")
   .page-temp-control__content
@@ -16,17 +17,23 @@
           TempImage.page-temp-control__slide-image(:src="slide.data.src", :mutate="slide.data")
           .page-temp-control__slide-label {{ slide.data.label }}
       .page-temp-control__top-right
+        .page-temp-control__item(v-for="item in items", :key="item.id")
+          TempImage.page-temp-control__item-image(:src="item.thumbnail")
+          .page-temp-control__item-label {{ item.label }}
       .page-temp-control__left.grid--flex-small
         .page-temp-control__slideshow(v-for="slideshow in slideshows", :key="slideshow.id", @click="onSlideshowClick(slideshow)")
           TempImage.page-temp-control__image(:src="slideshow.image.src", :mutate="slideshow.image")
           .page-temp-control__label {{ slideshow.label }}
       .page-temp-control__right.grid--flex-small
-        .page-temp-control__playlist(v-for="playlist in playlists", :key="playlist.id")
+        .page-temp-control__playlist(v-for="playlist in playlists", :key="playlist.id", @click="onPlaylistClick(playlist)")
           TempImage.page-temp-control__image(:src="playlist.thumbnail")
           .page-temp-control__label {{ playlist.label }}
+    .page-temp-control__sounds
+      .page-temp-control__sound(v-for="sound in sounds", :key="sound.id()")
+        | {{ sound.data.label }}
   TempDialog(:visible.sync="setting", editor, inset="2em", title="Settings")
     h2 Sound
-    EditorInputSlider(v-model="settings.master_volume", label="Master Volume", :min="0", :max="2", :step="0.01", :track="false", @input="onSettingsChange")
+    EditorInputSlider(v-model="settings.master_volume", label="Master Volume", :min="0", :max="1", :step="0.01", :track="false", @input="onSettingsChange")
     h2 Slideshow
     EditorInputSlider(v-model="settings.slideshow_speed", label="Slideshow Speed", :min="0", :max="2", :step="0.01", :track="false", @input="onSettingsChange")
 </template>
@@ -48,6 +55,11 @@ export default {
   async asyncData({ params }) {
     _router ??= await RemoteSystem.get('remote.router');
     _storage ??= await RemoteSystem.get('remote.tempstorage');
+
+    const soundsresults = await _storage.list('tmusic', {
+      status: 1,
+      channel: 'sound',
+    });
 
     const playlistresults = await _storage.list('tplaylist', {
       status: 1,
@@ -82,7 +94,7 @@ export default {
     }
 
     const settings = await _storage.getState('control.settings', {
-      master_volume: 1,
+      master_volume: .75,
       slideshow_speed: 1,
     });
 
@@ -92,7 +104,9 @@ export default {
 
     console.log('settings', settings);
 
-    return { params, playlists, slideshows, settings };
+    console.log('sounds', soundsresults.entities);
+
+    return { params, playlists, slideshows, settings, sounds: soundsresults.entities };
   },
 
   async mounted() {
@@ -119,10 +133,14 @@ export default {
         control: false,
         screen: false,
       },
+      battle: false,
       slideshow: null,
       images: null,
       slides: null,
       slideLock: null,
+      playlist: null,
+      musics: null,
+      items: null,
     };
   },
 
@@ -139,6 +157,10 @@ export default {
 
   methods: {
 
+    onBattle() {
+      this.battle = !this.battle;
+    },
+
     async onSlideshowClick(slideshow) {
       await _storage.screen().setSlides(slideshow.id);
     },
@@ -151,6 +173,10 @@ export default {
       }
     },
 
+    async onPlaylistClick(playlist) {
+      await _storage.screen().setPlaylist(playlist.id);
+    },
+
     onSetting() {
       this.setting = true;
     },
@@ -158,6 +184,7 @@ export default {
     onSettingsChange: TimingUtil.debounce(async function() {
       console.log(this.settings);
       await _storage.setState('control.settings', this.settings);
+      await _storage.screen().setMasterVolume(this.settings.master_volume);
     }, 1000),
 
     async setSlide(request, { slideshow, index, lock }) {
@@ -173,11 +200,31 @@ export default {
       this.slideLock = lock;
     },
 
-    async setStatus(request, { slideshow }) {
+    async setPlaylist(request, { playlist, index }) {
+      if (this.playlist?.id() !== playlist) {
+        this.playlist = await _storage.load('tplaylist', playlist);
+        this.musics = await this.playlist.getRef('musics');
+      }
+      const items = [];
+      for (let i = 0; i < this.musics.length; i++) {
+        const item = this.musics[(i + index) % this.musics.length].values();
+        item.videoId = YoutubeUtil.getVideoId(item.src);
+        item.thumbnail = YoutubeUtil.getVideoThumbnail(item.videoId);
+        items.push(item);
+      }
+      this.items = items;
+    },
+
+    async setStatus(request, { slideshow, playlist }) {
       if (!slideshow && this.slideshow !== null) {
         this.slideshow = null;
         this.images = null;
         this.slides = null;
+      }
+      if (!playlist && this.playlist !== null) {
+        this.playlist = null;
+        this.musics = null;
+        this.items = null;
       }
     },
 
@@ -193,6 +240,8 @@ export default {
     height: calc(100vh - 28px)
     box-sizing: border-box
     background: var(--color--background)
+    display: grid
+    grid-template-rows: 9fr 1fr
 
   &__grid
     display: grid
@@ -203,8 +252,6 @@ export default {
   &__top-left,
   &__top-right
     background: var(--color--dark)
-
-  &__top-left
     display: flex
     gap: .3em
     padding: .5em
@@ -215,12 +262,14 @@ export default {
     padding: .5em
     overflow: auto
 
+  &__playlist,
   &__slideshow
     padding: .5em
     background: var(--color--main)
     cursor: pointer
     transition: .2s ease-in-out
 
+  &__playlist:hover,
   &__slideshow:hover
     background: var(--color--main-light)
 
@@ -231,10 +280,12 @@ export default {
     aspect-ratio: 16/9
     margin-bottom: .5em
 
+  &__item-image,
   &__slide-image
     aspect-ratio: 16/9
     max-width: 15vw
 
+  &__item,
   &__slide
     width: 15vw
     padding: .5em
@@ -248,6 +299,7 @@ export default {
     inset: 0
     background: #F002
 
+  &__item:first-child,
   &__slide:first-child
     background: var(--color--highlight-second-light)
 
@@ -262,6 +314,7 @@ export default {
     background: var(--error-status)
     width: 0
 
+  &__item-label,
   &__slide-label
     padding: .4em .5em
     text-align: center
@@ -269,5 +322,20 @@ export default {
     max-width: 100%
     white-space: nowrap
     overflow: hidden
+
+  &__sounds
+    display: flex
+    flex-wrap: wrap
+    gap: .5em
+    padding: .5em
+
+  &__sound
+    padding: .5em
+    background: var(--color--main)
+    height: 50%
+    display: inline-flex
+    box-sizing: border-box
+    justify-content: center
+    align-items: center
   
 </style>

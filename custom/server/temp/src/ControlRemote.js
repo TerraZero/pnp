@@ -28,8 +28,12 @@ module.exports = class ControlRemote {
     return await this.command({ func: 'setSlide', params: { slideshow, index, lock }});
   }
 
-  async setStatus(slideshow) {
-    return await this.command({ func: 'setStatus', params: { slideshow }});
+  async setPlaylist(playlist, index) {
+    return await this.command({ func: 'setPlaylist', params: { playlist, index }});
+  }
+
+  async setStatus(slideshow, playlist) {
+    return await this.command({ func: 'setStatus', params: { slideshow, playlist }});
   }
 
 }
