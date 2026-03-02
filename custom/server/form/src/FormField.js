@@ -24,13 +24,31 @@ module.exports = class FormField {
     this.id = id;
     this.build = null;
     this.schema = null;
+    this.group = null;
     this.events = {};
     this.state = {};
   }
 
+  /**
+   * @returns {any}
+   */
+  getValue() {
+    return this.builder.form.getValue(this.id) ?? null;
+  }
+
+  /**
+   * @param {any} value 
+   * @returns {this}
+   */
+  setValue(value) {
+    console.log(this.builder.form, this.id);
+    this.builder.form.setValue(this.id, value);
+    return this;
+  }
+
   getParentId() {
     const ids = this.id.split('.');
-    ids.shift();
+    ids.pop();
     return ids.join('.');
   }
 
@@ -39,6 +57,14 @@ module.exports = class FormField {
    */
   getParent() {
     return this.builder.getField(this.getParentId());
+  }
+
+  /**
+   * @param {string} name  
+   * @returns {FormField}
+   */
+  getChild(name) {
+    return this.builder.form.getField([...this.id, name].join('.'));
   }
 
   /**

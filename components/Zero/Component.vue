@@ -9,11 +9,14 @@ component(v-if="component", ref="comp", :is="component", v-bind="$attrs", v-on="
 </template>
 
 <script>
+import namespaces from '~/custom/namespaces/components.namespace';
+
 export default {
   props: ['comps', 'fallback'],
   computed: {
     component() {
-      return this.comps;
+      if (namespaces[this.comps]) return this.comps;
+      return null;
     },
   },
   methods: {

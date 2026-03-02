@@ -1,4 +1,4 @@
-const ActionBase = require('../src/ActionBase');
+const ActionBase = require('../../action/src/ActionBase');
 
 module.exports = class PayCyberAction extends ActionBase {
 

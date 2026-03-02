@@ -5,6 +5,12 @@ const FormBuilder = require('./FormBuilder');
 const FormField = require('./FormField');
 
 /**
+ * @typedef {Object} E_FormSubmitEvent
+ * @property {import('./FormBase')} form
+ * @property {Object} values
+ */
+
+/**
  * @typedef {Object} E_FormSchemaBuildEvent
  * @property {import('./FormBase')} form
  * @property {FormBuilder} builder
@@ -35,6 +41,24 @@ module.exports = class FormBase {
       RemoteSystem.events.on(FormBase.EVENT__FORM_SCHEMA_BUILD, listener);
     } else {
       RemoteSystem.events.on(FormBase.EVENT__FORM_SCHEMA_BUILD, event => {
+        if (event.form.info.params.generate === 'entity.' + filterType) {
+          listener(event);
+        }
+      });
+    }
+    return this;
+  }
+
+  /**
+   * @param {(event: E_FormSubmitEvent) => void} listener 
+   * @param {string} filterType
+   * @returns {this}
+   */
+  static onFormSubmit(listener, filterType = null) {
+    if (filterType === null) {
+      RemoteSystem.events.on(FormBase.EVENT__FORM_SUBMIT, listener);
+    } else {
+      RemoteSystem.events.on(FormBase.EVENT__FORM_SUBMIT, event => {
         if (event.form.info.params.generate === 'entity.' + filterType) {
           listener(event);
         }
@@ -82,6 +106,17 @@ module.exports = class FormBase {
 
   /**
    * @param {string} id 
+   * @param {any} value 
+   * @returns {this}
+   */
+  setValue(id, value) {
+    this.values ??= {};
+    JSONUtil.setDeep(this.values, id, value);
+    return this;
+  }
+
+  /**
+   * @param {string} id 
    * @returns {FormField}
    */
   getField(id) {
@@ -97,9 +132,7 @@ module.exports = class FormBase {
       id: field.id,
       field,
     });
-    this.fields.sort((a, b) => {
-      return a.id.localeCompare(b.id);
-    });
+    this.fields.sort((a, b) => a.id.localeCompare(b.id));
     return this;
   }
 
@@ -122,9 +155,42 @@ module.exports = class FormBase {
     await this.prepare(info);
   }
 
-  async doSubmit() {
-    await this.system.events.trigger(FormBase.EVENT__FORM_SUBMIT, { form: this });
-    await this.submit();
+  async doFinalize() {
+    // Mounting
+    for (const field of this.fields) {
+      let value = null;
+      if (field.field.build?.mount) {
+        const mount = this.getField(field.field.build.mount);
+        value = mount.getValue();
+        if (field.field.build.mountpath) {
+          value = JSONUtil.getDeep(value, field.field.build.mountpath);
+        }
+        field.field.setValue(value);
+      }
+    }
+
+    await this.finalize();
+    this.values = { ...this.values };
+    this.mount.$emit('ready', { form: this });
+  }
+
+  async doSubmit(values = null) {
+    // Mounting
+    for (const field of this.fields) {
+      if (field.field.build?.mount) {
+        const mount = this.getField(field.field.build.mount);
+        if (field.field.build.mountpath) {
+          JSONUtil.setDeep(values, [field.field.build.mount, field.field.build.mountpath].join('.'), field.field.getValue());
+        } else {
+          JSONUtil.setDeep(values, field.field.build.mount, field.field.getValue());
+        }
+        JSONUtil.removeDeep(values, field.id);
+      }
+    }
+
+    values ??= JSON.parse(JSON.stringify(this.values));
+    await this.system.events.trigger(FormBase.EVENT__FORM_SUBMIT, { form: this, values });
+    await this.submit(values);
   }
 
   /**
@@ -132,8 +198,17 @@ module.exports = class FormBase {
    */
   build(builder) { }
 
+  async setup(mount) { }
+
+  async rebuild() { }
+
   async prepare(info) { }
 
-  async submit() { }
+  async finalize() { }
+
+  /**
+   * @param {Object} values 
+   */
+  async submit(values) { }
 
 }

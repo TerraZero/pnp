@@ -1,7 +1,11 @@
 <template lang="pug">
 .zero-formulate
+  .zero-formulate__extra-top(v-if="schema && values")
+    slot(name="top", :schema="schema", :values="values")
   FormulateForm.zero-formulate__form(v-if="schema && !error", v-model="values", :schema="schema", @submit="onSubmit")
   h2.zero-formulate__error(v-if="error") {{ error }}
+  .zero-formulate__extra(v-if="schema && values")
+    slot(:schema="schema", :values="values")
 </template>
 
 <script>
@@ -24,6 +28,7 @@ export default {
 
   inject: {
     wsc: { default: null },
+    zuiw: { default: null },
   },
 
   created() {
@@ -43,16 +48,23 @@ export default {
 
     async setup() {
       if (this._form === null) {
-        this._form = await ZERO.get(this.form);
+        const form = await ZERO.get(this.form);
+        const id = await form.setup(this);
+        if (id) {
+          this._form = await ZERO.get(id);
+        } else {
+          this._form = form;
+        }
         this._form.setMount(this);
-        await this._form.doPrepare(this.info, this);
+        await this._form.doPrepare(this.info);
         this.schema = this._form.schema();
+        await this._form.doFinalize();
       }
     },
 
-    onSubmit(values) {
-      if (!this.inline) this._form.doSubmit();
-      this.$emit('submit', { form: this._form });
+    onSubmit() {
+      // if (!this.inline) this._form.doSubmit();
+      this.$emit('submit', { form: this._form, values: this.values });
     },
 
     setFatalError(error) {
@@ -77,17 +89,17 @@ export default {
   --form-size-outer-gap: var(--form-size-gap)
   --form-size-input-color: calc(var(--form-size) * 2)
   --form-size-area-height: calc(var(--form-size) * 6)
-  --form-color: black
-  --form-color-input: var(--form-color)
+  --form-color: var(--color--font-dark)
+  --form-color-input: var(--color--font-dark)
   --form-color-disabled: #555
   --form-color-label: var(--form-color)
-  --form-color-border: var(--form-color)
+  --form-color-border: var(--color--main-light)
   --form-color-button: var(--form-color)
   --form-color-error: red
-  --form-color-bg: white
+  --form-color-bg: var(--color--main-light)
   --form-color-bg-mark: #CCC
   --form-color-bg-input: var(--form-color-bg)
-  --form-color-bg-disabled: #0003
+  --form-color-bg-disabled: var(--color--ui-disabled)
   --form-color-bg-button: var(--form-color-bg-input)
   --form-color-bg-group: var(--form-color-bg-mark)
 
@@ -158,9 +170,6 @@ export default {
 
     &:focus
       outline: var(--form-size-border) solid var(--form-color-border)
-
-  label
-    color: var(--form-color-label)
 
   .formulate-input-group-repeatable
     display: grid

@@ -1,24 +1,15 @@
-const JSONQuery = require('json-query');
+function log(target, key, descriptor) {
+  console.log(target, key, descriptor);
+  return descriptor;
+}
 
-const data = {
-  info: {
-    tags: [
-      'remote',
-    ],
-  },
-};
+class Cool {
 
-const locals = {
-  includes: function(input, ...args) {
-    if (Array.isArray(input)) {
-      for (const arg of args) {
-        if (input.includes(arg)) return input;
-      }
-    }
-    return undefined;
-  },
-};
+  @log
+  static cool() {
 
-const result = JSONQuery('info.tags:includes(remote)', { data, locals });
-console.log(result);
-console.log(result.parents);
+  }
+
+}
+
+Cool.cool();

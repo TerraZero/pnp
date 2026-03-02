@@ -40,6 +40,11 @@ module.exports = class RMIModule extends ZeroModule {
         });
       } catch (error) {
         request.meta.error = error;
+        request.meta.details = {
+          name: request.data.info.name,
+          method: request.data.method,
+          args: request.data.args,
+        };
         answer({ result: error.message });
       }
     });

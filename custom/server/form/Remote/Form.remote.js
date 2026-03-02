@@ -49,12 +49,17 @@ module.exports = class FormRemote {
       prepare: ({ field, schema }) => {
         const form = field.builder.getForm();
         if (schema['@action'] === undefined) {
-          schema['@action'] = form.doSubmit.bind(form);
+          schema['@action'] = () => { 
+            form.doSubmit();
+            if (typeof form.mount.onSubmit === 'function') {
+              form.mount.onSubmit();
+            }
+          };
         }
       },
     });
-    system.events.on(FormBase.EVENT__FORM_SUBMIT, ({ form }) => {
-      console.log(form.values);
+    system.events.on(FormBase.EVENT__FORM_SUBMIT, ({ form, values }) => {
+      console.log('values', form.values, values);
     });
   }
 

@@ -1,0 +1,6 @@
+model Map {
+  id Int @id @default(autoincrement()) /// { label: 'Map ID' }
+  label String /// { key: 'label' }
+  game String /// { label: 'Game', disabled: true }
+  value String @default("{}") /// [JSON] { label: 'Configuration' }
+}

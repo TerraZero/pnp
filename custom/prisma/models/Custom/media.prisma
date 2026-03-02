@@ -13,3 +13,11 @@ model Image {
   src String
   value String @default("{}") /// [JSON]
 }
+
+model Playlist {
+  id Int @id @default(autoincrement()) /// { label: 'Playlist ID' }
+  name String /// { key: 'label' }
+  game String /// { label: 'Game', disabled: true, fillable: true }
+  playlist String @default("{}") /// [JSON] { label: 'Playlist' }
+  value String @default("{}") /// [JSON]
+}

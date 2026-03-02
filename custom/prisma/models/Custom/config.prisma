@@ -1,0 +1,6 @@
+model Config {
+  id Int @id @default(autoincrement()) /// { label: 'Config Real ID' }
+  identify String /// { key: 'label', label: 'Config ID' }
+  game String /// { label: 'Game', disabled: true }
+  value String @default("{}") /// [JSON] { label: 'Configuration' }
+}

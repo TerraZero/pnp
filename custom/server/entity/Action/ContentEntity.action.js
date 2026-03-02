@@ -39,10 +39,11 @@ module.exports = class ContentEntityAction extends ActionBase {
       const entity = SystemCollector.get('entity.' + option.placeholders.entity_type);
 
       for (const item of await entity.list(search, 5)) {
+        const params = entity.getParamsReverse(item);
         items.push({
-          name: item.name,
-          description: 'ID: ' + item.id,
-          value: item.id,
+          name: item[entity.key('label') ?? 'name'],
+          description: 'ID: ' + params.id,
+          value: params.id,
         });
       }
     }

@@ -19,15 +19,20 @@ export default {
   ssr: false,
 
   css: [
+    '@fortawesome/fontawesome-svg-core/styles.css',
+    'rpg-awesome/css/rpg-awesome.css',
+    '~/plugins/dicefont/dicefont.css',
     'element-ui/lib/theme-chalk/index.css',
     '~/custom/styles/index.sass',
   ],
 
   plugins: [
+    '~/plugins/storeutil.js',
     '~/plugins/element.js',
     '~/plugins/shortkey.js',
     '~/plugins/jsoneditor.js',
     '~/plugins/debounce.js',
+    '~/plugins/fontawesome.js',
     '~/custom/formulate/formulate.plugin.js',
     '~/custom/loaders/plugin.loader.js',
   ],

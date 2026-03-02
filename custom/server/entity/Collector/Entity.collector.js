@@ -40,7 +40,8 @@ module.exports = class EntityCollector extends SystemCollector {
       .setTag('rmi')
       .setTag(ContentEntityBase.TAG_ENTITY_CONTENT)
       .setTag(ContentEntityBase.TAG_ENTITY_ACTIONS)
-      .setAttribute('rmi.timeout', timeout);
+      .setAttribute('rmi.timeout', timeout)
+      .setAttribute('entity_type', name);
   }
 
 }

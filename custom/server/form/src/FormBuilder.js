@@ -170,6 +170,7 @@ module.exports = class FormBuilder {
     this.getForm().addField(field);
     field.build = options;
     field.schema = schema;
+    field.group = this._group;
 
     const typeHandler = this.getTypeHandler(options.type);
     if (typeHandler) typeHandler?.prepare({ field, schema: options });
@@ -209,7 +210,7 @@ module.exports = class FormBuilder {
 
     if (typeHandler?.post) typeHandler?.post({ field, schema: options });
 
-    this.addField(schema, pos);
+    this.addField(schema, pos);    
 
     if (typeof children === 'function') {
       children(new FormBuilder({ parents: [...this.parents, options.name], wrapper: this }));
@@ -266,6 +267,7 @@ module.exports = class FormBuilder {
    * @param {(string|string[])} after
    * @param {import('../form.module').T_FormulateFieldOptions} options 
    * @param {(builder: FormBuilder) => void} children
+   * @returns {this}
    */
   fieldAfter(after, options, children = null) {
     const id = this.getFieldID(after);
@@ -274,6 +276,37 @@ module.exports = class FormBuilder {
     return this.field(options, children, pos + 1);
   }
 
+  /**
+   * @param {(string|string[])} id 
+   * @returns {this}
+   */
+  removeField(id) {
+    id = this.getFieldID(id);
+    const name = id.split('.').pop();
+    const field = this.getField(id);
+    const parent = field.getParent();
+    if (field.group === null) {
+      // if root 
+      if (parent.id === '') {
+        const index = parent.schema.findIndex(v => v.name === name);
+        parent.schema.splice(index, 1);
+      } else {
+        const index = parent.schema.children.findIndex(v => v.name === name);
+        parent.schema.children.splice(index, 1); 
+      }
+    } else {
+      const index = parent.schema.group[field.group].findIndex(v => v.name === name);
+      parent.schema.group[field.group].splice(index, 1);
+    }
+    const fieldIndex = this.form.fields.findIndex(v => v.id === id);
+    this.form.fields.splice(fieldIndex, 1);
+    return this;
+  }
+
+  /**
+   * @param {string} group 
+   * @returns {this}
+   */
   group(group) {
     this._group = group;
     return this;

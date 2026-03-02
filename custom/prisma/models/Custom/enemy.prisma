@@ -1,0 +1,7 @@
+model EnemyType {
+  id Int @id @default(autoincrement()) /// { label: 'Enemy ID' }
+  label String /// { key: 'label' }
+  search String /// { label: 'Search' }
+  game String /// { label: 'Game', disabled: true }
+  value String @default("{}") /// [JSON] { label: 'Configuration' }
+}

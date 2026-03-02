@@ -20,7 +20,16 @@ module.exports = class BuildingEntity extends ContentEntityBase {
       type: 'building',
       label: 'Building',
       routes: {
-        edit: '/{game}/building/{id}/edit',
+        edit: {
+          url: '/{game}/building/{id}/edit',
+          label: 'Edit',
+          icon: 'edit',
+        },
+        editor: {
+          url: '/{game}/building/{id}/editor',
+          label: 'Editor',
+          icon: 'map-location',
+        },
       },
       keys: {
         config: 'value.config',

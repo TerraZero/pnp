@@ -24,10 +24,9 @@ export default {
         layout = {
           comp: StringUtil.pathToPascalCase('layout/' + layout),
         };
-      }
-      if (layout === null) {
+      } else if (layout === null) {
         layout = {
-          comp: 'grid',
+          comp: 'LayoutGrid',
         };
       }
       return layout;

@@ -44,13 +44,13 @@ const Handler = require('events');
 const RemoteSystem = require('zero-system/src/RemoteSystem');
 
 /** @type {import('~/custom/server/building/Remote/Editor.remote')} */
-let editorRemote = null;
+let _editorRemote = null;
 /** @type {import('~/custom/server/building/Entity/Building.entity')} */
-let buildingStorage = null;
+let _buildingStorage = null;
 /** @type {import('~/custom/server/building/Entity/Floor.entity')} */
-let floorStorage = null;
+let _floorStorage = null;
 /** @type {import('~/custom/server/building/Entity/Tile.entity')} */
-let tileStorage = null;
+let _tileStorage = null;
 
 const DefaultActions = [
   {
@@ -82,14 +82,14 @@ export default {
   async asyncData({ params }) {
     const data = { params };
 
-    editorRemote = await RemoteSystem.get('remote.editor');
-    buildingStorage = await RemoteSystem.get('entity.building');
-    floorStorage = await RemoteSystem.get('entity.floor');
-    tileStorage = await RemoteSystem.get('entity.tile');
+    _editorRemote = await RemoteSystem.get('remote.editor');
+    _buildingStorage = await RemoteSystem.get('entity.building');
+    _floorStorage = await RemoteSystem.get('entity.floor');
+    _tileStorage = await RemoteSystem.get('entity.tile');
 
-    data.tiletypes = await editorRemote.getTileTypes();
-    data.building = await buildingStorage.load(params.id, true);
-    data.floors = await floorStorage.multi(data.building.floors.map(v => v.id), true);
+    data.tiletypes = await _editorRemote.getTileTypes();
+    data.building = await _buildingStorage.load(params.id, true);
+    data.floors = await _floorStorage.multi(data.building.floors.map(v => v.id), true);
 
     data.selectFloor = data.floors[0].id;
 
@@ -162,11 +162,11 @@ export default {
     getStorage(type) {
       switch (type) {
         case 'building':
-          return buildingStorage;
+          return _buildingStorage;
         case 'floor':
-          return floorStorage;
+          return _floorStorage;
         case 'tile':
-          return tileStorage;
+          return _tileStorage;
       }
       return null;
     },
@@ -208,7 +208,7 @@ export default {
     },
 
     async update() {
-      this.grid = await tileStorage.multi(this.floor.tiles.map(v => v.id));
+      this.grid = await _tileStorage.multi(this.floor.tiles.map(v => v.id));
     },
 
     async getConfig(type, entity, key, fallback = null) {
@@ -232,7 +232,7 @@ export default {
       if (tile && this.selectedTileType) {
         tile.value.layers ??= [];
         tile.value.layers.push(this.selectedTileType);
-        tileStorage.save(tile);
+        _tileStorage.save(tile);
       }
     },
 

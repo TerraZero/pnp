@@ -11,7 +11,6 @@
   ElButton(v-if="(!single || !table.length) && fieldop.add", class="formulate-reference__add", @click="onAdd")
     span.el-icon-circle-plus-outline
   ZeroEntitySelectList(ref="dialog", @select="onSelectResult")
-  
 </template>
 
 <script>

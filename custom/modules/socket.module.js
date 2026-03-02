@@ -5,7 +5,7 @@ import Server from 'zero-system/src/Nuxt/Socket/Server';
 import SystemCollector from 'zero-system/src/SystemCollector';
 
 export default function () {
-  // Logger.setDebug(true);
+  Logger.setDebug(true);
   this.nuxt.hook('listen', http => {
     const socket = sio(http, {
       cors: {

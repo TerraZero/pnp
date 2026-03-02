@@ -1,24 +1,53 @@
 const { Prisma, PrismaClient } = require('@prisma/client');
-const { SystemCollector } = require('zero-system/src/SystemItem');
+const SystemCollector = require('zero-system/src/SystemCollector');
+const Util = require('../../Util');
 
 /**
  * @typedef {(tx: PrismaClient)} C_TransactionCallback
  */
 
 /**
+ * @typedef {Object} T_ModelFieldSchemaOptions
+ * @property {string} [key] Defined keywords are: id, label
+ * @property {string} [label] The label of this field
+ * @property {any} [fallback] The fallback value of this field
+ * @property {string} [type] The type of this field
+ * @property {string} [list_type] The type of the list items (Saved as json)
+ */
+
+/**
+ * @typedef {Object} T_ModelFieldRealSchema
+ * @property {string} name
+ * @property {string} type
+ * @property {boolean} isId
+ * @property {boolean} isRequired
+ * @property {boolean} hasDefaultValue
+ * @property {any} default
+ */
+
+/**
  * @typedef {Object} T_ModelFieldSchema
- * @property {Object} real
+ * @property {T_ModelFieldRealSchema} real
  * @property {string} name
  * @property {string} type
  * @property {boolean} required
  * @property {boolean} reference
  * @property {boolean} primary
- * @property {Object<string, any>} options
+ * @property {T_ModelFieldSchemaOptions} options
+ */
+
+/**
+ * @typedef {Object} T_ModelSchemaOptions
+ * @property {Object<string, string>} [routes]
+ * @property {Object} [meta]
+ * @property {boolean} [meta.temp]
+ * @property {string} [meta.label]
  */
 
 /**
  * @typedef {Object} T_ModelSchema
  * @property {Object} real
+ * @property {T_ModelSchemaOptions} options
  * @property {string} name
  * @property {T_ModelFieldSchema[]} fields
  */
@@ -39,16 +68,21 @@ module.exports = class StorageService {
    * @returns {Object}
    */
   static getObjectParse(input) {
-    const match = input.match(/\{.*\}/s);
-    if (match) {
-      try {
-        return Function(`'use strict'; return (${match[0]})`)();
-      } catch (error) {
-        console.error("Invalid JavaScript object format:", error);
-        return {};
+    let object = {};
+    const lines = input.split('\\n');
+
+    for (const line of lines) {
+      const match = line.match(/\{.*\}/s);
+      if (match) {
+        try {
+          const value = Function(`'use strict'; return (${match[0]})`)();
+          object = Util.deepMergeOptions(object, value);
+        } catch (error) {
+          console.error("Invalid JavaScript object format:", line, error);
+        }
       }
     }
-    return {};
+    return object;
   }
 
   constructor() {
@@ -77,6 +111,7 @@ module.exports = class StorageService {
         return {
           real: model,
           name: model.name,
+          options: StorageService.getObjectParse(model.documentation ?? ''),
           fields: model.fields.map(field => {
             return {
               real: field,
@@ -104,6 +139,13 @@ module.exports = class StorageService {
     const schema = this.schema.find(v => v.name.toLowerCase() === model.toLowerCase());
     if (field === null) return schema;
     return schema.fields.find(v => v.name.toLowerCase() === field.toLowerCase());
+  }
+
+  /**
+   * @returns {string[]}
+   */
+  getSchemaKeys() {
+    return this.schema.map(v => v.name);
   }
 
   /**

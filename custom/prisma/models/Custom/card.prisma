@@ -1,0 +1,7 @@
+model Card {
+  id Int @id @default(autoincrement()) /// { label: 'Card ID' }
+  label String /// { key: 'label' }
+  search String /// { label: 'Search' }
+  type String /// { label: 'Card type' }
+  value String @default("{}") /// [JSON] { label: 'Configuration' }
+}

@@ -1,19 +1,130 @@
+@import Theme/Base
+
 @import Transition/Fade
+@import Transition/FadeRightSoft
+@import Transition/FadeLeftSoft
+@import Transition/RollLeftEnter
+
+@import Animation/DropPulse
 
 :root
   --primary: #2F3E67
   --secondary: #93A6DA
+  --land: #254E88
 
   --pen: white
   --pen-secondary: grey
 
+  --error: #F56C6C
+  --error-light: #fef0f0
+  --error-status: #A9563F
+  --warning: #E6A23C
+  --warning-light: #fdf6ec
+  --warning-status: #B67E33
+  --error-status: #A9563F
+  --success: #67C23A
+  --success-light: #f0f9eb
+  --success-status: #45852C
+
+  --interact--outdated: #F5EBDD
+
 body
   font-family: sans-serif
 
-.el-notification
+.std-margin
+  margin: 1em 0
+
+.std-margin--small
+  margin: .5em 0
+
+.std-grid-half
+  display: grid
+  grid-template-columns: 1fr 1fr
+  gap: 1em
+
+.std-rotate-90
+  transform: rotate(90deg)
+
+.std-rotate-90-rev
+  transform: rotate(-90deg)
+
+.el-message-box,
+.el-notification,
+.el-message
 
   &__content strong
     background: var(--secondary)
     color: var(--pen)
-    padding: 2px 4px 
+    padding: 2px 6px 
     border-radius: 2px
+
+  .zero-note--success &__content strong
+    background: var(--success)
+    color: var(--success-light)
+
+  .zero-note--warning &__content strong
+    background: var(--warning)
+    color: var(--warning-light)
+
+  .zero-note--error &__content strong
+    background: var(--error)
+    color: var(--error-light)
+
+  &.zero-note--clickable
+    cursor: pointer
+
+.el-notification
+
+  &.zero-note--success
+    border-color: var(--success)
+
+  &.zero-note--warning
+    border-color: var(--warning)
+
+  &.zero-note--error
+    border-color: var(--error)
+
+.el-message-box
+
+  &__content
+    max-height: 85vh
+    overflow: auto
+
+  &.zero-note--success
+    border-color: var(--success)
+    border-width: 3px
+
+  &.zero-note--warning
+    border-color: var(--warning)
+    border-width: 3px
+
+  &.zero-note--error
+    border-color: var(--error)
+    border-width: 3px
+
+  &.zero-note--success &__header
+    background-color: var(--success)
+
+  &.zero-note--warning &__header
+    background-color: var(--warning)
+
+  &.zero-note--error &__header
+    background-color: var(--error)
+
+  &.zero-note--success .el-button
+    background: var(--success)
+    color: var(--success-light)
+
+  &.zero-note--warning .el-button
+    background: var(--warning)
+    color: var(--warning-light)
+
+  &.zero-note--error .el-button
+    background-color: var(--error)
+    border-color: var(--error-light)
+
+  &.zero-note--wide
+    width: 80vw
+  
+  pre
+    overflow: auto

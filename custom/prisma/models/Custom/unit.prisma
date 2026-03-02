@@ -1,0 +1,14 @@
+model UnitType {
+  id Int @id @default(autoincrement()) /// { label: 'UnitType ID' }
+  label String /// { key: 'label' }
+  search String /// { label: 'Search' }
+  game String /// { label: 'Game', disabled: true }
+  value String @default("{}") /// [JSON] { label: 'Configuration' }
+}
+
+model Unit {
+  id Int @id @default(autoincrement()) /// { label: 'Unit ID' }
+  type Int /// { label: 'Type' }
+  label String /// { key: 'label' }
+  value String @default("{}") /// [JSON] { label: 'Configuration' }
+}

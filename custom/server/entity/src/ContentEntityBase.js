@@ -1,10 +1,3 @@
-const MethodProxy = require('zero-util/src/MethodProxy');
-const StringUtil = require('zero-util/src/StringUtil');
-const SystemCollector = require('zero-system/src/SystemCollector');
-const JSONUtil = require('zero-util/src/JSONUtil');
-
-const EntityBase = require('./EntityBase');
-
 /**
  * @typedef {Object} T_ContentEntityInfo
  * @property {string} type
@@ -13,6 +6,8 @@ const EntityBase = require('./EntityBase');
  * @property {string} table
  * @property {Object<string, string>} routes
  * @property {Object<string, string>} keys
+ * @property {Object<string, string>} paramsMap
+ * @property {Object<string, string>} list
  */
 
 /**
@@ -27,9 +22,33 @@ const EntityBase = require('./EntityBase');
  */
 
 /**
+ * @typedef {Object} T_EntityRouteInfo
+ * @property {string} url
+ * @property {string} icon
+ * @property {string} label
+ */
+
+/**
+ * @typedef {Object} T_EntitySearchResult
+ * @property {G_Entity[]} items
+ * @property {Object} pager
+ * @property {number} pager.current
+ * @property {number} pager.items
+ * @property {number} pager.pages
+ */
+
+/**
  * @template G_Entity
  * @template G_Prisma
  */
+
+const MethodProxy = require('zero-util/src/MethodProxy');
+const StringUtil = require('zero-util/src/StringUtil');
+const SystemCollector = require('zero-system/src/SystemCollector');
+const JSONUtil = require('zero-util/src/JSONUtil');
+
+const EntityBase = require('./EntityBase');
+
 module.exports = class ContentEntityBase extends EntityBase {
 
   static EVENT__ENTITY_PRESAVE = 'entity:presave';
@@ -61,18 +80,34 @@ module.exports = class ContentEntityBase extends EntityBase {
     this._root = SystemCollector.get('root');
   }
 
+  get type() {
+    return this.info().type;
+  }
+
   /** @returns {G_Prisma} */
   get query() {
-    return this.storage.database[this.info().type];
+    return this.storage.database[this.info().table ?? this.type];
   }
 
   model() {
-    return this.storage.models[this.info().table ?? this.info().type];
+    return this.storage.models[this.info().table ?? this.type];
   }
 
   /** @returns {import('../Service/Storage.service').T_ModelSchema} */
   schema() {
-    return this.storage.getSchema(this.info().table ?? this.info().type);
+    return this.storage.getSchema(this.info().table ?? this.type);
+  }
+
+  /** @returns {Object<string, string>} */
+  getInfoList() {
+    let keys = this.info().list;
+    if (!keys) {
+      keys = {
+        [this.key('id')]: 'ID',
+        [this.key('label')]: 'Label',
+      };
+    }
+    return keys;
   }
 
   /**
@@ -81,6 +116,7 @@ module.exports = class ContentEntityBase extends EntityBase {
    * @returns {G_Prisma}
    */
   convert(value, isNew = false) {
+    delete value.meta;
     for (const field of this.schema().fields) {
       switch (field.type) {
         case 'Int':
@@ -121,10 +157,11 @@ module.exports = class ContentEntityBase extends EntityBase {
   }
 
   /**
-   * @param {G_Entity} value 
+   * @param {?G_Entity} value 
    * @returns {G_Entity}
    */
   prepare(value) {
+    if (!value) return value;
     for (const field of this.schema().fields) {
       if (field.type === 'Json' && typeof value[field.name] === 'string') {
         value[field.name] = JSON.parse(value[field.name]);
@@ -133,6 +170,9 @@ module.exports = class ContentEntityBase extends EntityBase {
         value[field.name] = value[field.name][0];
       }
     }
+    value.meta = {
+      type: this._item.getAttribute('entity_type'),
+    };
     return value;
   }
 
@@ -153,6 +193,7 @@ module.exports = class ContentEntityBase extends EntityBase {
         },
       };
       await this._root.events.trigger(ContentEntityBase.EVENT__ENTITY_PREUPDATE, { type: this, entity, bag, query });
+      delete query.data.id;
       result = await this.query.update(query);
     } else {
       const query = {
@@ -163,6 +204,115 @@ module.exports = class ContentEntityBase extends EntityBase {
     }
     await this._root.events.trigger(ContentEntityBase.EVENT__ENTITY_POSTSAVE, { type: this, entity, result, bag });
     return result;
+  }
+
+  /**
+   * @param {G_Entity} entity 
+   * @returns {G_Entity}
+   */
+  async clone(entity) {
+    entity = JSON.parse(JSON.stringify(entity));
+    delete entity.id;
+    return await this.save(entity);
+  }
+
+  /**
+   * @param {number} id 
+   * @param {boolean} ref
+   * @returns {?G_Entity}
+   */
+  async loadNext(id, ref = false) {
+    const next = await this.query.findFirst({
+      select: {
+        id: true,
+      },
+      where: {
+        id: { gt: id },
+      },
+      orderBy: {
+        id: 'asc',
+      },
+    });
+    if (next && next.id) {
+      return await this.load(next.id, ref);
+    }
+    return null;
+  }
+
+  /**
+   * @param {number} id 
+   * @param {boolean} ref
+   * @returns {?G_Entity}
+   */
+  async loadPrev(id, ref = false) {
+    const prev = await this.query.findFirst({
+      select: {
+        id: true,
+      },
+      where: {
+        id: { lt: id },
+      },
+      orderBy: {
+        id: 'desc',
+      },
+    });
+    if (prev && prev.id) {
+      return await this.load(prev.id, ref);
+    }
+    return null;
+  }
+
+  /**
+   * @param {Object<string, string>} params 
+   * @param {Object<string, string>} additional 
+   * @returns {Object<string, string>}
+   */
+  getParams(params, additional = {}) {
+    const map = this.info().paramsMap ?? null;
+
+    if (map === null) {
+      return {...params, ...additional};
+    } else {
+      const object = {};
+
+      for (const field in map) {
+        if (params[field]) object[map[field]] = params[field];
+      }
+      return {...object, ...additional};
+    }
+  }
+
+  /**
+   * @param {Object<string, string>} params 
+   * @param {Object<string, string>} additional 
+   * @returns {Object<string, string>}
+   */
+  getParamsReverse(params, additional = {}) {
+    const map = this.info().paramsMap ?? null;
+
+    if (map === null) {
+      return {...params, ...additional};
+    } else {
+      const object = {};
+
+      for (const field in map) {
+        if (params[map[field]]) object[field] = params[map[field]];
+      }
+      return {...object, ...additional};
+    }
+  }
+
+  /**
+   * @param {Object<string, string>} params 
+   * @param {boolean} ref
+   * @returns {?G_Entity}
+   */
+  async loadByParams(params, ref = false) {
+    if (this.info().paramsMap) {
+      return await this.loadFirst(this.getParams(params), ref);
+    } else {
+      return await this.load(params.id, ref);
+    }
   }
 
   /**
@@ -184,11 +334,73 @@ module.exports = class ContentEntityBase extends EntityBase {
         }
       }
     }
+
     const bag = {};
     await this._root.events.trigger(ContentEntityBase.EVENT__ENTITY_PRELOAD, { type: this, id, ref, query, bag });
     const entity = this.prepare(await this.query.findFirst(query));
     await this._root.events.trigger(ContentEntityBase.EVENT__ENTITY_POSTLOAD, { type: this, entity, query, bag });
     return entity;
+  }
+
+  /**
+   * @param {Object} where 
+   * @param {boolean} ref 
+   * @returns {?G_Entity}
+   */
+  async loadFirst(where, ref = false) {
+    const query = {
+      where,
+    };
+    if (ref) {
+      for (const field of this.schema().fields) {
+        if (field.reference) {
+          query.include ??= {};
+          query.include[field.name] = { select: { id: true } };
+        }
+      }
+    }
+
+    const bag = {};
+    await this._root.events.trigger(ContentEntityBase.EVENT__ENTITY_PRELOAD, { type: this, where, ref, query, bag });
+    const entity = this.prepare(await this.query.findFirst(query));
+    await this._root.events.trigger(ContentEntityBase.EVENT__ENTITY_POSTLOAD, { type: this, entity, query, bag });
+    return entity;
+  }
+
+  /**
+   * @param {G_Prisma} params 
+   * @param {?number} take 
+   * @param {number} page 
+   * @returns {G_Entity[]}
+   */
+  async loadAll(params = {}, take = null, page = 0) {
+    const query = {
+      select: {
+        [this.key('id')]: true,
+      },
+      where: this.getParams(params),
+    };
+    if (take !== null) {
+      query.take = take;
+      query.skip = take * page;
+    }
+    console.log(query);
+    const ids = await this.query.findMany(query);
+    return await this.multi(ids.map(v => v.id));
+  }
+
+  /**
+   * @param {G_Prisma} params 
+   * @param {?number} take 
+   * @param {number} page 
+   * @returns {Object<number, G_Entity>}
+   */
+  async loadAllMapped(params = {}, take = null, page = 0) {
+    const mapped = {};
+    for (const entity of await this.loadAll(params, take, page)) {
+      mapped[entity.id] = entity;
+    }
+    return mapped;
   }
 
   /**
@@ -206,7 +418,7 @@ module.exports = class ContentEntityBase extends EntityBase {
   }
 
   /**
-   * @param {(string|Object<string,string>)} search 
+   * @param {(string|G_Prisma)} search 
    * @param {number} take
    * @param {number} page
    * @returns {G_Entity[]}
@@ -227,30 +439,135 @@ module.exports = class ContentEntityBase extends EntityBase {
   }
 
   /**
+   * @param {Object<string, string>} search 
+   * @param {number} take 
+   * @param {number} page 
+   * @returns {T_EntitySearchResult}
+   */
+  async search(search, take = 100, page = 0) {
+    const ids = await this.query.findMany({
+      select: {
+        [this.key('id')]: true,
+      },
+      where: this.buildSearchWhere(search),
+      take,
+      skip: take * page,
+    });
+    const items = await this.count(search);
+    return {
+      items: await this.multi(ids.map(v => v.id)),
+      pager: {
+        current: page,
+        items,
+        pages: Math.ceil(items / take),
+      },
+    };
+  }
+
+  /**
+   * @param {(string|Object<string, string>)} search 
+   * @returns {Object}
+   */
+  buildSearchWhere(search) {
+    const and = [];
+    const or = [];
+
+    if (typeof search === 'string') {
+      search = {
+        '*': search,
+      };
+    }
+
+    for (const condition in search) {
+      if (search[condition] === '') continue;
+      if (condition === '*') {
+        const splitConditions = search[condition].split(/\s/).filter(v => v);
+        for (const field of this.schema().fields) {
+          if (field.type === 'String' || field.type === 'Json') {
+            const extra = [];
+            for (const split of splitConditions) {
+              extra.push({
+                [field.name]: { contains: split.trim() },
+              });
+            }
+            if (extra.length === 1) {
+              or.push(extra[0]);
+            } else {
+              or.push({
+                AND: extra,
+              });
+            }
+          }
+        }
+      } else if (typeof search[condition] === 'string') {
+        and.push({
+          [condition]: { contains: search[condition] },
+        });
+      } else {
+        and.push({
+          [condition]: search[condition],
+        });
+      }
+    }
+    const where = {};
+    if (or.length) where.OR = or;
+    if (and.length) where.AND = and;
+    console.log('search build', where);
+    return or.length || and.length ? where : undefined;
+  }
+
+  /**
+   * @param {string} method 
+   * @param {Object} query 
+   * @returns {Object}
+   */
+  async execute(method, query) {
+    return this.query[method](query);
+  }
+
+  /**
+   * @param {Object<string, string>} params 
+   * @param {?Number} take 
+   * @returns {Object<string, string>}
+   */
+  async getOptions(params = {}, take = null, page = 0) {
+    const idKey = this.key('id');
+    const labelKey = this.key('label');
+    const query = {};
+    query.select ??= {};
+    query.select[idKey] = true;
+    query.select[labelKey] = true;
+    if (take !== null) {
+      query.take = take;
+      query.skip = take * page;
+    }
+    query.where = this.getParams(params);
+    const data = await this.query.findMany(query);
+    const options = {};
+    for (const item of data) {
+      options[item[idKey]] = item[labelKey] + ' (' + item[idKey] + ')';
+    }
+    return options;
+  }
+
+  /**
    * @param {(string|Object<string,string>)} search 
    * @returns {number}
    */
   async count(search) {
-    if (typeof search === 'string') {
-      if (this.key('label') === null) return 0;
-      search = { 
-        [this.key('label')]: { contains: search },
-      };
-    }
-
     return this.query.count({
-      where: search,
+      where: this.buildSearchWhere(search),
     });
   }
 
   async getEntityActions(items, query) {
     for (const item of await this.list(query.filter, 5)) {
       items.push({
-        name: `Edit: ${item.name}`,
+        name: `Edit: ${item[this.key('label')]}`,
         description: `Edit the ${this.info().label} "${item.id}"`,
-        tags: ['entity', this.info().type],
+        tags: ['entity', this.type],
         commands: new MethodProxy({ service: 'remote.form' })
-          .open(this.info().form ?? 'form.generate.edit', { game: item.game, id: item.id, generate: this._item.name }, { title: `${this.info().label} - ${item.name} [${item.id}]` })
+          .open(this.info().form ?? 'form.generate.edit', this.getParamsReverse(item, { game: item.game, generate: this._item.name }), { title: `${this.info().label} - ${item.name} [${item.id}]` })
           .chain,
       });
     }
@@ -262,11 +579,10 @@ module.exports = class ContentEntityBase extends EntityBase {
    * @returns {?string} 
    */
   async route(route, data) {
+    const info = this.getRouteInfo(route);
+    if (info === null) return null;
     const placeholder = await this.getRouteData(route, data);
-    if (this.info().routes && this.info().routes[route]) {  
-      return StringUtil.replaceObject(this.info().routes[route], placeholder, '');
-    }
-    return null;
+    return StringUtil.replaceObject(info.url, placeholder, '');
   }
 
   /**
@@ -276,6 +592,23 @@ module.exports = class ContentEntityBase extends EntityBase {
    */
   async getRouteData(route, data) {
     return data;
+  }
+
+  /**
+   * @param {string} route 
+   * @returns {?T_EntityRouteInfo}
+   */
+  getRouteInfo(route) {
+    if (this.info().routes && this.info().routes[route]) {
+      const routeInfo = this.info().routes[route];
+      if (typeof routeInfo === 'string') {
+        return {
+          url: routeInfo,
+        };
+      } 
+      return routeInfo;
+    } 
+    return null;
   }
 
   /**
@@ -348,5 +681,7 @@ module.exports = class ContentEntityBase extends EntityBase {
    * @returns {T_ContentEntityInfo} 
    */
   info() { }
+
+  config() { return []; }
 
 }

@@ -13,7 +13,7 @@ console.log();
 
 const registry = scaffold.getRegistry(__dirname);
 
-registry.setType('_collection', SystemCollector.pack(), true);
+registry.setType('_collection', SystemCollector.pack());
 scaffold.saveRegistry();
 
 console.log();
@@ -23,5 +23,5 @@ console.log();
 const package = scaffold.findPackageRoot(__dirname);
 
 scaffold.scaffoldActions(package, ({ action }) => {
-  return action.type === 'registry' || action.type === 'filelist' || action.type === 'append';
+  return action.type === 'registry';
 });

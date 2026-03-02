@@ -197,15 +197,58 @@ export default {
       return this.request.timing.promise;
     },
 
-    notify(notify) {
-      const matches = [...notify.message.matchAll(/`([^`]+)`/g)];
+    getReplaceMessageMatches(text) {
+      const preRegex = /<pre>([\s\S]*?)<\/pre>/g; // Finde <pre>-Blöcke
+      const quoteRegex = /"([^"]+)"/g; // Strings außerhalb von <pre>
+      const backtickRegex = /`([^`]+)`/g; // Strings innerhalb von <pre>
+
+      let matches = [];
+      let lastIndex = 0;
+
+      text.replace(preRegex, (match, code, index) => {
+        let beforePre = text.slice(lastIndex, index);
+        matches.push(...beforePre.matchAll(quoteRegex));
+        matches.push(...code.matchAll(backtickRegex));
+        lastIndex = index + match.length;
+      });
+      matches.push(...text.slice(lastIndex).matchAll(quoteRegex));
+      return matches;
+    },
+
+    prepareMessage(message) {
+      const matches = this.getReplaceMessageMatches(message.message);
       for (const match of matches) {
-        notify.message = notify.message.replace(match[0], '<strong>' + match[1] + '</strong>');
+        message.message = message.message.replace(match[0], '<strong>' + match[1] + '</strong>');
       }
-      if (matches.length) {
-        notify.dangerouslyUseHTMLString = true;
+      message.dangerouslyUseHTMLString = true;
+      message.customClass ??= '';
+      message.customClass += ' zero-note--' + (message.type ?? 'note');
+      if (message.onClick) {
+        message.customClass += ' zero-note--clickable';
       }
+      return message;
+    },
+
+    message(message) {
+      this.prepareMessage(message);
+      this.$message(message);
+    },
+
+    notify(notify) {
+      this.prepareMessage(notify);
       this.$notify(notify);
+    },
+
+    popup(message) {
+      this.prepareMessage(message);
+      message.showClose ??= false;
+      message.confirmButtonText ??= 'OK';
+      message.closeOnClickModal ??= false;
+      if (message.wide) {
+        message.customClass ??= '';
+        message.customClass += ' zero-note--wide';
+      }
+      this.$msgbox(message);
     },
 
   },

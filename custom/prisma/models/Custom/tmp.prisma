@@ -1,0 +1,74 @@
+/// { meta: { temp: true, label: 'Music' } }
+/// { routes: { base: "/temp/admin/tmusic" } }
+/// { routes: { edit: "/temp/admin/tmusic/:id/edit" } }
+/// { routes: { add: "/temp/admin/tmusic/add" } }
+model Tmusic {
+  id Int @id @default(autoincrement()) /// { label: 'Music ID' }
+  status Int @default(1)
+  label String /// { key: 'label' }
+  src String
+  type String /// { fallback: "youtube" }
+  start Int @default(0)
+  end Int @default(0)
+  volume Float @default(0.5)
+  playlists Tplaylist[]
+  value String @default("{}") /// [JSON] { label: 'Configuration' }
+}
+
+/// { meta: { temp: true, label: 'Image' } }
+/// { routes: { base: "/temp/admin/timage" } }
+/// { routes: { edit: "/temp/admin/timage/:id/edit" } }
+/// { routes: { add: "/temp/admin/timage/add" } }
+model Timage {
+  id Int @id @default(autoincrement()) /// { label: 'Image ID' }
+  status Int @default(1)
+  label String /// { key: 'label' }
+  src String
+  zoom Float @default(1)
+  top Int @default(0)
+  left Int @default(0)
+  slideshows Tslideshow[]
+  value String @default("{}") /// [JSON] { label: 'Configuration' }
+}
+
+/// { meta: { temp: true, label: 'Playlist' } }
+/// { routes: { base: "/temp/admin/tplaylist" } }
+/// { routes: { edit: "/temp/admin/tplaylist/:id/edit" } }
+/// { routes: { add: "/temp/admin/tplaylist/add" } }
+model Tplaylist {
+  id Int @id @default(autoincrement()) /// { label: 'Image ID' }
+  status Int @default(1)
+  label String /// { key: 'label' }
+  musics Tmusic[]
+  value String @default("{}") /// [JSON] { label: 'Configuration' }
+}
+
+/// { meta: { temp: true, label: 'Slideshow' } }
+/// { routes: { base: "/temp/admin/tslideshow" } }
+/// { routes: { edit: "/temp/admin/tslideshow/:id/edit" } }
+/// { routes: { add: "/temp/admin/tslideshow/add" } }
+model Tslideshow {
+  id Int @id @default(autoincrement()) /// { label: 'Image ID' }
+  status Int @default(1)
+  label String /// { key: 'label' }
+  images Timage[]
+  value String @default("{}") /// [JSON] { label: 'Configuration' }
+}
+
+/// { meta: { temp: true, label: 'State' } }
+/// { routes: { base: "/temp/admin/tstate" } }
+/// { routes: { edit: "/temp/admin/tstate/:id/edit" } }
+/// { routes: { add: "/temp/admin/tstate/add" } }
+model Tstate {
+  id Int @id @default(autoincrement()) /// { label: 'Image ID' }
+  label String /// { key: 'label' }
+  value String @default("{}") /// [JSON] { label: 'Configuration' }
+}
+
+/// { meta: { label: 'Log' } }
+model Tlog {
+  id Int @id @default(autoincrement()) /// { label: 'Image ID' }
+  label String /// { key: 'label' }
+  type String @default("note")
+  value String @default("{}") /// [JSON] { label: 'Configuration' }
+}

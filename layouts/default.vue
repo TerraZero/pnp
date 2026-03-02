@@ -1,4 +1,5 @@
 <template lang="pug">
-ZeroWindowStack
-  Nuxt  
+ZUIWindowManager
+  ZeroWindowStack
+    Nuxt
 </template>
