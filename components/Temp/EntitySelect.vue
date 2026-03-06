@@ -3,6 +3,7 @@ TempDialog.temp-entity-select(:visible.sync="show", editor, inset="2em", :title=
   ElTable(:data="transformed")
     ElTableColumn(prop="id", label="ID")
     ElTableColumn(prop="label", label="Name")
+    slot
     ElTableColumn(label="Operations")
       template(slot-scope="scope")
         EditorInputSwitch.temp-entity-select__select(v-model="scope.row.select", label="Select", border)
@@ -39,6 +40,7 @@ export default {
           label: entity.label(),
           select: false,
           entity,
+          values: entity.values(),
         });
       }
       return items;
@@ -57,7 +59,7 @@ export default {
       const conditions = structuredClone(this.conditions ?? {});
       conditions.label = { contains: this.search };
       conditions.id = { notIn: this.excludes };
-      const list = await this.entity_type.list(conditions, 10, this.pager.current);
+      const list = await this.entity_type.list(conditions, 100, this.pager.current);
       this.result = list.entities;
       this.pager = list.pager;
     },

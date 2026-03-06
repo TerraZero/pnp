@@ -10,6 +10,7 @@
       TempBreadcrumbButton(:status="battle ? 'success' : 'error'", unicode, @click="onBattle") ⚔️
       TempBreadcrumbButton(icon="s-tools", @click="onSetting")
       TempBreadcrumbButton(icon="s-home", to="/temp/admin")
+      TempBreadcrumbButton(icon="switch-button", status="error", @click="onStop")
   .page-temp-control__content
     .page-temp-control__grid
       .page-temp-control__top-left
@@ -29,13 +30,18 @@
           TempImage.page-temp-control__image(:src="playlist.thumbnail")
           .page-temp-control__label {{ playlist.label }}
     .page-temp-control__sounds
-      .page-temp-control__sound(v-for="sound in sounds", :key="sound.id()")
+      .page-temp-control__sound(v-for="sound in sounds", :key="sound.id()", @click="onSoundClick(sound)")
         | {{ sound.data.label }}
   TempDialog(:visible.sync="setting", editor, inset="2em", title="Settings")
     h2 Sound
     EditorInputSlider(v-model="settings.master_volume", label="Master Volume", :min="0", :max="1", :step="0.01", :track="false", @input="onSettingsChange")
     h2 Slideshow
     EditorInputSlider(v-model="settings.slideshow_speed", label="Slideshow Speed", :min="0", :max="2", :step="0.01", :track="false", @input="onSettingsChange")
+    .page-temp-control__text-form
+      EditorInputTextfield(v-model="headline", label="Headline")
+      EditorInputTextfield(v-model="subline", label="Subline")
+      ElButton(type="primary", @click="onText") Send
+      ElButton(type="danger", @click="onClear") Clear
 </template>
 
 <script>
@@ -141,6 +147,9 @@ export default {
       playlist: null,
       musics: null,
       items: null,
+
+      headline: null,
+      subline: null,
     };
   },
 
@@ -177,6 +186,10 @@ export default {
       await _storage.screen().setPlaylist(playlist.id);
     },
 
+    async onSoundClick(sound) {
+      await _storage.screen().setSound(sound.id());
+    },
+
     onSetting() {
       this.setting = true;
     },
@@ -185,7 +198,20 @@ export default {
       console.log(this.settings);
       await _storage.setState('control.settings', this.settings);
       await _storage.screen().setMasterVolume(this.settings.master_volume);
+      await _storage.screen().setSlideshowSpeed(this.settings.slideshow_speed);
     }, 1000),
+
+    async onText() {
+      await _storage.screen().setText(this.headline, this.subline);
+    },
+
+    async onClear() {
+      await _storage.screen().setText(null, null);
+    },
+
+    async onStop() {
+      await _storage.screen().stop();
+    },
 
     async setSlide(request, { slideshow, index, lock }) {
       if (this.slideshow?.id() !== slideshow) {
@@ -283,12 +309,13 @@ export default {
   &__item-image,
   &__slide-image
     aspect-ratio: 16/9
-    max-width: 15vw
+    max-width: 225px
 
   &__item,
   &__slide
     width: 15vw
     padding: .5em
+    max-width: 225px
     position: relative
     flex-shrink: 0
     cursor: pointer
@@ -337,5 +364,16 @@ export default {
     box-sizing: border-box
     justify-content: center
     align-items: center
+    cursor: pointer
+    transition: .2s ease-in-out
+
+  &__sound:hover
+    background: var(--color--main-light)
+
+  &__text-form
+    margin-top: 1em
+    display: grid
+    grid-template-columns: 1fr
+    gap: 1em
   
 </style>

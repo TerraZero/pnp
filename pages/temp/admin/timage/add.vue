@@ -18,6 +18,8 @@
           EditorInputSlider(v-model="values.zoom", label="Zoom", :min="0", :max="5", :step="0.001", :track="false")
           EditorInputSlider(v-model="values.top", label="Top", :min="-100", :max="100", :step="0.1", :track="false")
           EditorInputSlider(v-model="values.left", label="Left", :min="-100", :max="100", :step="0.1", :track="false")
+          EditorInputSlider(v-model="values.rotate", label="Rotate", :min="0", :max="360", :step="1", :track="false")
+          EditorInputSelect(v-model="values.fit", label="Fit", :options="{ cover: 'Cover', contain: 'Contain' }")
         .page-temp-admin-timage-add__preview
           TempImage.page-temp-admin-timage-add__image(:src="values.src", frame="2em", :mutate="getValues(['top', 'left', 'zoom'])")
 </template>

@@ -12,7 +12,8 @@
         ElButton(type="primary", @click="onSave") Save
         ElButton(type="danger", @click="onDelete") Delete
       EditorInputTextfield(v-model="values.label", label="Label")
-      TempTagsInput(v-model="values.tags", label="Tags", :options="{battle: 'Battle'}")
+      TempTagsInput(v-model="values.tags", label="Tags", cat="Music")
+      EditorInputSwitch(v-model="values.shuffle", label="Shuffle", border, :on="1", :off="0")
       ElTable(:data="musicsData")
         ElTableColumn(prop="id", label="ID")
         ElTableColumn(prop="label", label="Name")
@@ -26,6 +27,9 @@
             ElButton(type="primary", size="small", icon="el-icon-edit", @click="onEdit(scope.row.music)") Edit
             ElButton(type="danger", size="small", icon="el-icon-document-delete", @click="onRemove('musics', scope.row.music)") Remove
     TempEntitySelect(v-if="musics_type", :entity_type="musics_type", :conditions="{ channel: 'music' }", :excludes="musics_ids", ref="music_dialog", @submit="onMusicSubmit")
+      ElTableColumn(prop="tags", label="Tags")
+        template(slot-scope="{ row }")
+          TempTagsOutput(:value="row.values.tags", hide-cat)
 </template>
 
 <script>

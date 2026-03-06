@@ -52,4 +52,30 @@ module.exports = class ScreenRemote {
     return await this.command({ func: 'setMasterVolume', params: { volume } });
   }
 
+  /**
+   * @param {number} speed 
+   */
+  async setSlideshowSpeed(speed) {
+    return await this.command({ func: 'setSlideshowSpeed', params: { speed } });
+  }
+
+  /**
+   * @param {number} sound 
+   */
+  async setSound(sound) {
+    return await this.command({ func: 'setSound', params: { sound } });
+  }
+
+  /**
+   * @param {string} headline
+   * @param {string} subline
+   */
+  async setText(headline, subline) {
+    return await this.command({ func: 'setText', params: { headline, subline } });
+  }
+
+  async stop() {
+    return await this.command({ func: 'stop', params: { } });
+  }
+
 }

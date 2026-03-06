@@ -1,5 +1,5 @@
 <template lang="pug">
-.temp-youtube-video
+.temp-youtube-video(:class="classes", v-loading="loading")
   .temp-youtube-video__video(ref="video")
 </template>
 
@@ -7,6 +7,7 @@
 import YTPlayer from 'yt-player';
 
 import AsyncPromise from 'zero-util/src/AsyncPromise';
+import TimingUtil from 'zero-util/src/TimingUtil';
 
 import YoutubeUtil from '~/custom/util/YoutubeUtil';
 
@@ -19,6 +20,8 @@ import YoutubeUtil from '~/custom/util/YoutubeUtil';
  */
 
 export default {
+
+  props: ['src'],
 
   mounted() {
     if (process.client) {
@@ -34,6 +37,16 @@ export default {
     }
   },
 
+  watch: {
+
+    src: {
+      handler: TimingUtil.debounce(function(value) {
+        this.load(value);
+      }, 1000),
+    },
+
+  },
+
   data() {
     return {
       video: null,
@@ -41,10 +54,18 @@ export default {
       item: null,
       master_volume: .75,
       timeout: null,
+      loading: false,
     };
   },
 
   computed: {
+
+    classes() {
+      const classes = [];
+
+      if (this.src) classes.push('preview');
+      return classes.map(v => 'temp-youtube-video--' + v);
+    },
 
     player() {
       if (this.video === null) {
@@ -57,6 +78,15 @@ export default {
   },
 
   methods: {
+
+    load(url) {
+      this.loading = true;
+      const id = YoutubeUtil.getVideoId(url);
+      this.player.once('cued', () => {
+        this.loading = false;
+      });
+      this.player.load(id);
+    },
 
     /**
      * @param {T_YoutubeItem} item 
@@ -101,6 +131,10 @@ export default {
       }
     },
 
+    stop() {
+      this.player.pause();
+    },
+
   },
 
 }
@@ -109,4 +143,15 @@ export default {
 <style lang="sass">
 .temp-youtube-video
   display: none
+
+  &--preview
+    display: block
+    aspect-ratio: 16/9
+    width: 100%
+    height: auto
+
+  &__video
+    aspect-ratio: 16/9
+    width: 100%
+    height: auto
 </style>

@@ -9,14 +9,18 @@
     ElForm.page-temp-admin-tmusic-add__form
       .page-temp-admin-tmusic-add__operations
         ElButton(type="primary", @click="onSave") Create
-      EditorInputTextfield(v-model="values.label", label="Label")
-      EditorInputSelect(v-model="values.type", label="Type", :options="{youtube: 'Youtube'}")
-      EditorInputTextfield(v-model="values.src", label="Source")
-      EditorInputSelect(v-model="values.channel", label="Channel", :options="{music: 'Music', sound: 'Sound'}")
-      TempTagsInput(v-model="values.tags", label="Tags", :options="{battle: 'Battle'}")
-      EditorInputTextfield(v-model="values.start", label="Start")
-      EditorInputTextfield(v-model="values.end", label="End")
-      EditorInputSlider(v-model="values.volume", label="Volume", :min="0", :max="1", :step="0.01", :track="false")
+      .page-temp-admin-tmusic-add__preview
+        .page-temp-admin-tmusic-add__inner-form
+          EditorInputTextfield(v-model="values.label", label="Label")
+          EditorInputSelect(v-model="values.type", label="Type", :options="{youtube: 'Youtube'}")
+          EditorInputTextfield(v-model="values.src", label="Source")
+          EditorInputSelect(v-model="values.channel", label="Channel", :options="{music: 'Music', sound: 'Sound'}")
+          TempTagsInput(v-model="values.tags", label="Tags", cat="Music")
+          EditorInputTextfield(v-model="values.start", label="Start")
+          EditorInputTextfield(v-model="values.end", label="End")
+          EditorInputSlider(v-model="values.volume", label="Volume", :min="0", :max="1", :step="0.01", :track="false")
+        .page-temp-admin-tmusic-add__preview-video
+          TempYoutubeVideo(ref="sound", :src="values.src")
 </template>
 
 <script>
@@ -47,15 +51,24 @@ export default {
   &__content
     padding: 1em
 
-  &__form
+  &__form,
+  &__inner-form
     display: grid
     grid-template-columns: 1fr
     gap: 1em
+    align-content: start
 
   &__operations
     padding: .5em
     border: 3px solid var(--color--ui-disabled)
     text-align: right
     background: var(--color--ui-grey-light)
+
+  &__preview
+    display: grid
+    grid-template-columns: 1fr 1fr
+
+  &__preview-video
+    padding: 1em
 
 </style>

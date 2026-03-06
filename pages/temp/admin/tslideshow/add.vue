@@ -12,7 +12,7 @@
         ElButton(type="primary", @click="onSave") Save
         ElButton(type="danger", @click="onDelete") Delete
       EditorInputTextfield(v-model="values.label", label="Label")
-      TempTagsInput(v-model="values.tags", label="Tags", :options="{battle: 'Battle'}")
+      TempTagsInput(v-model="values.tags", label="Tags", cat="Image")
       .page-temp-admin-tslideshow-add__images
         ElTable.page-temp-admin-tslideshow-add__table(:data="imagesData")
           ElTableColumn(prop="id", label="ID")

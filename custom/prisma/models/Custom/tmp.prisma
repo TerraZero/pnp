@@ -9,7 +9,7 @@ model Tmusic {
   src String
   type String /// { fallback: "youtube" }
   channel String @default("music")
-  tags String @default("") /// { type: 'string_list', sep: ',' }
+  tags String @default("[]") /// { type: 'tags' }
   start Int @default(0)
   end Int @default(0)
   volume Float @default(0.75)
@@ -29,6 +29,8 @@ model Timage {
   zoom Float @default(1)
   top Int @default(0)
   left Int @default(0)
+  rotate Int @default(0)
+  fit String @default("cover")
   slideshows Tslideshow[]
   value String @default("{}") /// [JSON] { label: 'Configuration' }
 }
@@ -41,7 +43,8 @@ model Tplaylist {
   id Int @id @default(autoincrement()) /// { label: 'Image ID' }
   status Int @default(1)
   label String /// { key: 'label' }
-  tags String @default("") /// { type: 'string_list', sep: ',' }
+  tags String @default("[]") /// { type: 'tags' }
+  shuffle Int @default(0)
   musics Tmusic[]
   value String @default("{}") /// [JSON] { label: 'Configuration' }
 }
@@ -54,7 +57,7 @@ model Tslideshow {
   id Int @id @default(autoincrement()) /// { label: 'Image ID' }
   status Int @default(1)
   label String /// { key: 'label' }
-  tags String @default("") /// { type: 'string_list', sep: ',' }
+  tags String @default("[]") /// { type: 'tags' }
   images Timage[]
   value String @default("{}") /// [JSON] { label: 'Configuration' }
 }
@@ -74,5 +77,16 @@ model Tlog {
   id Int @id @default(autoincrement()) /// { label: 'Image ID' }
   label String /// { key: 'label' }
   type String @default("note")
+  value String @default("{}") /// [JSON] { label: 'Configuration' }
+}
+
+/// { meta: { temp: true, label: 'Tag' } }
+/// { routes: { base: "/temp/admin/ttag" } }
+/// { routes: { edit: "/temp/admin/ttag/:id/edit" } }
+/// { routes: { add: "/temp/admin/ttag/add" } }
+model Ttag {
+  id Int @id @default(autoincrement()) /// { label: 'Tag ID' }
+  label String /// { key: 'label' }
+  cat String @default("default")
   value String @default("{}") /// [JSON] { label: 'Configuration' }
 }

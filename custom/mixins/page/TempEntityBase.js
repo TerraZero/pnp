@@ -4,6 +4,8 @@ const RemoteSystem = require('zero-system/src/RemoteSystem');
 let _router = null;
 /** @type {import('~/custom/server/temp/Service/Temp.service')} */
 let _temp = null;
+/** @type {import('~/custom/server/temp/Remote/TempStorage.remote')} */
+let _storage = null;
 
 export default {
 
@@ -19,15 +21,13 @@ export default {
       throw new Error('Please set a computed field "params_type"');
     }
     /** @type {import('~/custom/server/temp/Remote/TempStorage.remote')} */
-    const storage = await RemoteSystem.get('remote.tempstorage');
-    this.entity_type = await storage.getType(this.params_type);
+    _storage ??= await RemoteSystem.get('remote.tempstorage');
+    this.entity_type = await _storage.getType(this.params_type);
     if (this.params.id || this.params_id) {
-      this.entity = await storage.load(this.params_type, this.params_id ?? this.params.id);
+      this.entity = await _storage.load(this.params_type, this.params_id ?? this.params.id);
     }
-  },
-
-  async fetch() {
     this.reload();
+    await this.prepare();
   },
 
   data() {
@@ -52,12 +52,17 @@ export default {
 
   methods: {
 
+    prepare() { },
+
+    prepareList() { },
+
     route(route, params = {}) {
       return this.entity_type.route(route, this.entity ?? null, params);
     },
 
     async reload() {
-      const list = await _temp.list(this.params_type, this.search, 100, this.pager.current);
+      const list = await _storage.list(this.params_type, this.search, 100, this.pager.current);
+      await this.prepareList(list);
       this.result = list.result;
       this.pager = list.pager;
     },

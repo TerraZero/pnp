@@ -52,10 +52,15 @@ export default {
         margin-top: 0
 
   &--editor > .el-dialog
+    display: grid
+    grid-template-rows: min-content 1fr
     background: var(--background--ui-background)
     --color--form--element: var(--color--main)
     border: 5px solid var(--color--background)
     border-radius: 0
+
+  &--editor > .el-dialog > .el-dialog__body
+    overflow-y: auto
 
   &--editor > .el-dialog > .el-dialog__header > .el-dialog__title,
   &--editor > .el-dialog > .el-dialog__body

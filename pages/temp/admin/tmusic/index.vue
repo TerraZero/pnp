@@ -10,6 +10,16 @@
     ElTable.page-temp-admin-tmusic__types(:data="result")
       ElTableColumn(prop="id", label="ID")
       ElTableColumn(prop="label", label="Name")
+      ElTableColumn(prop="channel", label="Channel")
+      ElTableColumn(prop="playlist", label="Playlist")
+        template(slot-scope="{ row }")
+          .page-temp-admin-tmusic__playlist(v-if="row.playlist") 
+            ElButton(type="primary", size="small", icon="el-icon-edit", circle, @click="onPlaylistEdit(row.playlist)")
+            | {{ row.playlist.label() }} <strong>({{ row.playlist.id() }})</strong>
+          .page-temp-admin-tmusic__playlist(v-else) - NO -
+      ElTableColumn(prop="tags", label="Tags")
+        template(slot-scope="{ row }")
+          TempTagsOutput(:value="row.tags", hide-cat)
       ElTableColumn(label="Operations")
         template(slot-scope="scope")
           ElButton(type="primary", size="small", icon="el-icon-edit", @click="onEdit(scope)") Edit
@@ -31,6 +41,20 @@ export default {
 
   },
 
+  methods: {
+
+    async prepareList(list) {
+      for (const index in list.entities) {
+        list.result[index].playlist = await list.entities[index].getRef('playlists', 0);
+      }
+    },
+
+    onPlaylistEdit(playlist) {
+      playlist.goto('edit');
+    },
+
+  },
+
 };
 </script>
 
@@ -42,4 +66,9 @@ export default {
 
   &__operations
     padding-bottom: 1em
+
+  &__playlist
+    display: flex
+    gap: .5em
+    align-items: center
 </style>

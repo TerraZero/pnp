@@ -4,7 +4,16 @@
     TransitionGroup(name="fade")
       .page-temp-screen__slide(v-for="slide in slideCurrent", :key="slide.data.src")
         TempImage.page-temp-screen__image(:src="slide.data.src", :mutate="slide.data")
+  .page-temp-screen__text
+    .page-temp-screen__text-wrapper
+      Transition(name="fade")
+        .page-temp-screen__subline.font--sharp(v-if="subline")
+          | {{ subline }}
+      Transition(name="fade")
+        .page-temp-screen__headline.font--old-london(v-if="headline")
+          | {{ headline }}
   TempYoutubeVideo(ref="music")
+  TempYoutubeVideo(ref="sound")
 </template>
 
 <script>
@@ -63,6 +72,9 @@ export default {
       playlist: null,
       musics: null,
       musicIndex: -1,
+
+      headline: null,
+      subline: null,
     };
   },
 
@@ -78,12 +90,17 @@ export default {
       this.slideshow = await _storage.load('tslideshow', slideshow);
       this.images = await this.slideshow.getRef('images');
       this.slideIndex = -1;
-      this.slideLock = null;
+      if (this.images.length === 1) {
+        this.slideLock = 0;
+      } else {
+        this.slideLock = null;
+      }
       clearTimeout(this.slideTimeout);
       this.nextSlide();
     },
 
     nextSlide() {
+      if (this.images === null) return;
       this.slideIndex = (this.slideIndex + 1) % this.images.length;
       this.slideCurrent.unshift(this.images[this.slideIndex]);
       _storage.control().setSlide(this.slideshow.id(), this.slideIndex, this.slideLock);
@@ -96,7 +113,7 @@ export default {
         const meta = this.slideshow.data.value?.meta_images[this.slideIndex] ?? { time: 10000 };
         this.slideTimeout = setTimeout(() => {
           this.nextSlide();
-        }, meta.time);
+        }, meta.time * this.settings.slideshow_speed);
       }
     },
 
@@ -113,11 +130,16 @@ export default {
     async setPlaylist(request, { playlist }) {
       this.playlist = await _storage.load('tplaylist', playlist);
       this.musics = await this.playlist.getRef('musics');
-      this.musicIndex = -1;
+      if (this.playlist.data.shuffle === 1) {
+        this.musicIndex = this.randomInt(0, this.musics.length - 1) - 1;
+      } else {
+        this.musicIndex = -1;
+      }
       this.nextMusic();
     },
 
     nextMusic() {
+      if (this.musics === null) return;
       this.musicIndex = (this.musicIndex + 1) % this.musics.length;
       _storage.control().setPlaylist(this.playlist.id(), this.musicIndex);
       this.$refs.music.play(this.musics[this.musicIndex].values())
@@ -128,6 +150,38 @@ export default {
 
     async setMasterVolume(request, { volume }) {
       this.$refs.music.setMasterVolume(volume);
+    },
+
+    async setSlideshowSpeed(request, { speed }) {
+      this.settings.slideshow_speed = speed;
+    },
+
+    async setSound(request, { sound }) {
+      sound = await _storage.load('tmusic', sound);
+      this.$refs.sound.play(sound.values());
+    },
+
+    async setText(request, { headline, subline }) {
+      this.headline = headline;
+      this.subline = subline;
+    },
+
+    randomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    },
+
+    async stop(request, { }) {
+      console.log('stop');
+      this.playlist = null;
+      this.musics = null;
+      this.$refs.music.stop();
+
+      this.slideshow = null;
+      this.images = null;
+      this.slideIndex = -1;
+      this.slideLock = null;
+      this.slideCurrent = [];
+      clearTimeout(this.slideTimeout);
     },
 
   },
@@ -152,5 +206,23 @@ export default {
   &__image
     position: absolute
     inset: 0
+
+  &__text
+    position: absolute
+    inset: 0
+    display: flex
+    justify-content: center
+    align-items: center
+
+  &__headline
+    font-size: 20vw
+    text-align: center
+    text-shadow: 0 2px 3px rgba(0,0,0,0.85), 0 0 12px rgba(255,0,0,0.75), 0 0 28px rgba(150,0,0,0.65), 0 0 45px rgba(90,0,0,0.6)
+    color: #fac06e
+
+  &__subline
+    font-size: 8vw
+    text-align: center
+    color: #fac06e
   
 </style>

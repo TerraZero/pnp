@@ -41,4 +41,26 @@ module.exports = class Util {
     return newObject;
   }
 
+  static mapObject(array, callback) {
+    const object = {};
+    for (const key in array) {
+      const value = callback(key, array[key], array);
+      if (Array.isArray(value)) {
+        object[value[0]] = value[1];
+      }
+    }
+    return object;
+  }
+
+  static isId(value) {
+    return parseInt(value + '') + '' === (value + '');
+  }
+
+  static filterIds(array) {
+    return array.filter(Util.isId).map(v => {
+      if (typeof v === 'string') return parseInt(v);
+      return v;
+    });
+  } 
+
 }

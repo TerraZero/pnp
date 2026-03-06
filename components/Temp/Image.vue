@@ -1,7 +1,7 @@
 <template lang="pug">
 .temp-image
   .temp-image__frame(:style="frameStyle")
-    ElImage.temp-image__image(:src="src", fit="cover", :style="imageStyle")
+    ElImage.temp-image__image(:src="src", :fit="fit", :style="imageStyle")
   .temp-image__frame-overlay(:style="frameStyle")
 </template>
 
@@ -24,10 +24,14 @@ export default {
       const styles = {
         top: (this.mutate?.top ?? 0) + '%',
         left: (this.mutate?.left ?? 0) + '%',
-        transform: 'scale(' + (this.mutate?.zoom ?? 1) + ')',
+        transform: 'scale(' + (this.mutate?.zoom ?? 1) + ') rotate(' + (this.mutate?.rotate ?? 0) + 'deg)',
       };
 
       return styles;
+    },
+
+    fit() {
+      return this.mutate?.fit ?? 'cover';
     },
 
   },

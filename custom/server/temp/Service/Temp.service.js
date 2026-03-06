@@ -1,4 +1,5 @@
 const SystemCollector = require('zero-system/src/SystemCollector');
+const Util = require('../../Util');
 
 /**
  * @typedef {Object} T_ListResult
@@ -292,6 +293,69 @@ module.exports = class TempService {
       }
     }
     return value;
+  }
+
+  /**
+   * @returns {string[]}
+   */
+  async getTagCategories() {
+    return (
+      await this.storage.database.ttag.findMany({
+        distinct: ['cat'],
+        select: { cat: true },
+      })
+    ).map(v => v.cat);
+  }
+
+  /**
+   * @typedef {Object} T_TagQuery
+   * @property {string} [cat]
+   * @property {number[]} [ids]
+   * @property {string} [search]
+   * @property {number[]} [selected]
+   */
+
+  /**
+   * @param {T_TagQuery} query 
+   */
+  async getTags(query, take = 20) {
+    const where = {};
+  
+    if (query.cat) {
+      where.cat = query.cat;
+    }
+    if (query.ids) {
+      where.id = { in: Util.filterIds(query.ids) };
+    }
+    if (query.search) {
+      where.label = { contains: query.search };
+    }
+
+    if (query.selected) {
+      return await this.storage.database.ttag.findMany({ where: {
+        OR: [
+          { id: { in: Util.filterIds(query.selected) } },
+          where,
+        ],
+      } });
+    } else {
+      return await this.storage.database.ttag.findMany({ where });
+    }
+  }
+
+  /**
+   * @param {string} category 
+   * @param {string} label 
+   * @returns {Object}
+   */
+  async setTag(category, label) {
+    return await this.storage.database.ttag.create({
+      data: {
+        cat: category,
+        label: label,
+        value: '{}',
+      },
+    });
   }
 
   /**
